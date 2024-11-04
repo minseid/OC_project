@@ -1,29 +1,27 @@
 package com.example.OC.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Table(name="Link")
+@Table(name="Mapping")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Link_Entity {
+public class UserMeetingMappingEntity {
 
     @Id
     @GeneratedValue
-    private Long place_id;
+    private Long id;
 
     @Column
-    private String naver_link;
+    private long meeting_id;
 
     @Column
-    private String kakao_link;
-
-    @Column
-    private String google_link;
+    private long user_id;
 }

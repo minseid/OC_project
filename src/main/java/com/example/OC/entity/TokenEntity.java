@@ -13,7 +13,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Token_Entity {
+public class TokenEntity {
 
     @Id
     @GeneratedValue

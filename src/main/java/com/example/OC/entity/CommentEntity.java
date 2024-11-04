@@ -1,6 +1,5 @@
 package com.example.OC.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,24 +8,31 @@ import lombok.ToString;
 
 import java.sql.Timestamp;
 
-@Table(name="Social")
+@Table(name="comment")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Social_Entity {
+public class CommentEntity {
 
     @Id
     @GeneratedValue
     private Long id;
 
     @Column
-    private String title;
+    private long meeting_id;
 
     @Column
-    private String link;
+    private long user_id;
 
     @Column
     private Timestamp create_at;
+
+    @Column
+    private Timestamp update_at;
+
+    @Column
+    private String comment;
+
 }

@@ -6,33 +6,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.sql.Timestamp;
-
-@Table(name="comment")
+@Table(name="Link")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Comment_Entity {
+public class LinkEntity {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private Long place_id;
 
     @Column
-    private long meeting_id;
+    private String naver_link;
 
     @Column
-    private long user_id;
+    private String kakao_link;
 
     @Column
-    private Timestamp create_at;
-
-    @Column
-    private Timestamp update_at;
-
-    @Column
-    private String comment;
-
+    private String google_link;
 }

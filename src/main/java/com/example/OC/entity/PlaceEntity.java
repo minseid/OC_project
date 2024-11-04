@@ -7,13 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Table(name="Mapping")
+import java.sql.Timestamp;
+
+@Table(name="Place")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Mapping_Entity {
+public class PlaceEntity {
 
     @Id
     @GeneratedValue
@@ -23,5 +25,20 @@ public class Mapping_Entity {
     private long meeting_id;
 
     @Column
-    private long user_id;
+    private long create_user;
+
+    @Column
+    private String place_name;
+
+    @Column
+    private String address;
+
+    @Column
+    private Timestamp create_at;
+
+    @Column
+    private Timestamp update_at;
+
+    @Column
+    private long like_count;
 }
