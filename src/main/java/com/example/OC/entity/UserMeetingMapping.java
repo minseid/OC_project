@@ -13,7 +13,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class UserMeetingMappingEntity {
+public class UserMeetingMapping {
 
     @Id
     @GeneratedValue

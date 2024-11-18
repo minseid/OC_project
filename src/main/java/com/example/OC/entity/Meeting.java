@@ -7,25 +7,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Table(name="Token")
+import java.sql.Timestamp;
+
+@Table(name="Social")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class TokenEntity {
+public class Meeting {
 
     @Id
     @GeneratedValue
-    private Long Token_key;
+    private Long id;
 
     @Column
-    private boolean Token_filled;
+    private String title;
 
     @Column
-    private String Token_naver;
+    private String link;
 
     @Column
-    private String Token_kakao;
-
+    private Timestamp create_at;
 }

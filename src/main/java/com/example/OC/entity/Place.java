@@ -9,24 +9,36 @@ import lombok.ToString;
 
 import java.sql.Timestamp;
 
-@Table(name="Social")
+@Table(name="Place")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class MeetingEntity {
+public class Place {
 
     @Id
     @GeneratedValue
     private Long id;
 
     @Column
-    private String title;
+    private long meeting_id;
 
     @Column
-    private String link;
+    private long create_user;
+
+    @Column
+    private String place_name;
+
+    @Column
+    private String address;
 
     @Column
     private Timestamp create_at;
+
+    @Column
+    private Timestamp update_at;
+
+    @Column
+    private long like_count;
 }

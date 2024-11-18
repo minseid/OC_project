@@ -1,38 +1,31 @@
 package com.example.OC.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.sql.Timestamp;
-
-@Table(name="comment")
+@Table(name="Token")
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class CommentEntity {
+public class Token {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private Long Token_key;
 
     @Column
-    private long meeting_id;
+    private boolean Token_filled;
 
     @Column
-    private long user_id;
+    private String Token_naver;
 
     @Column
-    private Timestamp create_at;
-
-    @Column
-    private Timestamp update_at;
-
-    @Column
-    private String comment;
+    private String Token_kakao;
 
 }

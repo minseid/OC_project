@@ -1,7 +1,7 @@
 package com.example.OC.dto;
 
 
-import com.example.OC.entity.PlaceEntity;
+import com.example.OC.entity.Place;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 
@@ -19,8 +19,8 @@ public class PlaceDto {
     private Timestamp create_at;
     private Timestamp update_at;
     private long like_count;
-    public PlaceEntity toEntity() {
-        return new PlaceEntity(id,meeting_id,create_user,place_name,address,create_at,update_at,like_count);
+    public Place toEntity() {
+        return new Place(id,meeting_id,create_user,place_name,address,create_at,update_at,like_count);
     }
 
 }

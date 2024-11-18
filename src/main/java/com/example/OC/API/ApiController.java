@@ -1,6 +1,6 @@
 package com.example.OC.API;
 
-import com.example.OC.entity.UserEntity;
+import com.example.OC.entity.User;
 import com.example.OC.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +17,12 @@ public class ApiController {
     UserService userService;
 
     @GetMapping("/api/user/{navertoken}")
-    public UserEntity getuserbynaver(@PathVariable String navertoken ) {
+    public User getuserbynaver(@PathVariable String navertoken ) {
         return userService.find_user_naver(navertoken);
     }
 
     @GetMapping("/api/user/{kakaotoken}")
-    public UserEntity getuserbykakao(@PathVariable String kakaotoken ) {
+    public User getuserbykakao(@PathVariable String kakaotoken ) {
        return userService.find_user_kakao(kakaotoken);
     }
     @PostMapping("/api/meeting")

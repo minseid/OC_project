@@ -1,7 +1,7 @@
 package com.example.OC.dto;
 
 
-import com.example.OC.entity.CommentEntity;
+import com.example.OC.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 
@@ -18,8 +18,8 @@ public class CommentDto {
     private Timestamp createAt;
     private Timestamp updateAt;
     private String content;
-    public CommentEntity toEntity() {
-        return new CommentEntity(id,meetingId,userId,createAt,updateAt,content);
+    public Comment toEntity() {
+        return new Comment(id,meetingId,userId,createAt,updateAt,content);
     }
 
 }

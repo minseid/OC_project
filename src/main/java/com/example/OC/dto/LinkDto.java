@@ -1,7 +1,7 @@
 package com.example.OC.dto;
 
 
-import com.example.OC.entity.LinkEntity;
+import com.example.OC.entity.Link;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 
@@ -13,8 +13,8 @@ public class LinkDto {
     private String naver_link;
     private String kakao_link;
     private String google_link;
-    public LinkEntity toEntity() {
-        return new LinkEntity(place_id, naver_link, kakao_link, google_link);
+    public Link toEntity() {
+        return new Link(place_id, naver_link, kakao_link, google_link);
     }
 
 }

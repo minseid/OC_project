@@ -12,7 +12,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class LinkEntity {
+public class Link {
 
     @Id
     @GeneratedValue
