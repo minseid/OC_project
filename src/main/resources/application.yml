@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: OC
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://<IP>:<Port/<DB>?useSSL=false&useUnicode=true&serverTimezone=Asia3/Seoul
+    username: <username>
+    password: <password>
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# DDL(create, alter, drop) ??? DB? ?? ??? ??? ? ??.
+#spring.jpa.hibernate.ddl-auto=update
