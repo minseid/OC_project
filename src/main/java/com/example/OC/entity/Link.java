@@ -15,15 +15,16 @@ import lombok.ToString;
 public class Link {
 
     @Id
-    @GeneratedValue
-    private Long place_id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable=false)
+    private Place place;
 
     @Column
-    private String naver_link;
+    private String naverLink;
 
     @Column
-    private String kakao_link;
-
-    @Column
-    private String google_link;
+    private String kakaoLink;
 }

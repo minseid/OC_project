@@ -19,9 +19,11 @@ public class UserMeetingMapping {
     @GeneratedValue
     private Long id;
 
-    @Column
-    private long meeting_id;
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private User user;
 
-    @Column
-    private long user_id;
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private Meeting meeting;
 }

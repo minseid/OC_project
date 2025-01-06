@@ -6,8 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Table(name="Place")
 @Entity
@@ -15,30 +21,30 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Place {
+public class Place extends TimeBaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    private long meeting_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private Meeting meeting;
 
-    @Column
-    private long create_user;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private List<User> user;
 
-    @Column
-    private String place_name;
+    @Column(nullable = false)
+    private String name;
 
-    @Column
+    @Column(nullable = false)
     private String address;
 
-    @Column
-    private Timestamp create_at;
-
-    @Column
-    private Timestamp update_at;
-
-    @Column
+    @Column(nullable = false)
     private long like_count;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }
