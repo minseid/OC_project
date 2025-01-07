@@ -1,47 +1,37 @@
 package com.example.OC.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Table(name="User")
 @Entity
+@Getter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
 @Builder
-public class User extends TimeBaseEntity {
+public class Participant extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JoinColumn
+    @Column
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private Meeting meeting;
 
     @Column(nullable = false)
-    private String nickname;
-
-    @Column
-    private String email;
-
-    @Column
-    private String password;
-
-    @Column
-    private String img;
-
-    @Column
-    private String snsVerified;
+    private Long fromId;
 
     @Column(nullable = false)
-    private boolean alarm;
+    private Long toId;
 
+    @Column(nullable = false)
+    private boolean status;
 }
