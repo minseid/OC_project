@@ -1,5 +1,6 @@
 package com.example.OC.entity;
 
+import com.example.OC.constant.NoticeStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +23,7 @@ public class Notice {
     @Column(nullable = false)
     private String content;
 
-    //공지는0, FAQ는1
     @Column(nullable = false)
-    private boolean type;
+    @Enumerated(EnumType.STRING)
+    private NoticeStatus noticeStatus;
 }
