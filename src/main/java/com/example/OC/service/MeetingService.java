@@ -52,7 +52,7 @@ public class MeetingService {
         return reception;
     }
 
-    public Meeting addMeeting(String title, String description, String image,Long fromId, List<Long> friends ) {
+    public Meeting addMeeting(String title, String description, String image,String fromId, List<Long> friends ) {
         Meeting target = Meeting.builder()
                 .title(title)
                 .description(description)
@@ -61,7 +61,7 @@ public class MeetingService {
                 .build();
         friends.forEach(id -> participantRepository.save(Participant.builder()
                 .meeting(target)
-                .fromId(fromId)
+                .fromId(Long.parseLong(fromId))
                 .toId(id)
                 .status(false)
                 .build()));
