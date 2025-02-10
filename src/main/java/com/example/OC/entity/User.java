@@ -26,6 +26,8 @@ public class User extends TimeBaseEntity {
     @Column(nullable = false)
     private String name;
 
+
+
     @Column(nullable = false)
     private String nickname;
 
@@ -37,6 +39,12 @@ public class User extends TimeBaseEntity {
 
     @Column
     private String img;
+
+    @Column
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    private UserRole role;
 
     @Column
     private String snsVerified;
