@@ -1,37 +1,39 @@
 package com.example.OC.security.userdetails;
 
 import com.example.OC.entity.User;
+import com.example.OC.service.UserService;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
-
 
 @Getter
 @Component
 @EqualsAndHashCode
 public class CustomUserDetails implements UserDetails {
+
+    private final UserService userService;
     private User user;
 
-    public CustomUserDetails(User user) {
-        this.user = user;
+    public CustomUserDetails(UserService userService) {
+        this.userService = userService;
     }
 
-    /*
-    * 계정이 갖고있는 권한목록 리턴
-    */
+    public void setUserByEmail(String email) {
+        this.user = userService.findUserByEmail(email);
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(() -> user.getRole().getKey());
         return authorities;
     }
+
     @Override
     public String getPassword() {
         return user.getPassword();
@@ -52,5 +54,13 @@ public class CustomUserDetails implements UserDetails {
         return true;
     }
 
-}
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}

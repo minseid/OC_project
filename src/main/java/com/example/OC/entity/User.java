@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @Builder
 public class User extends TimeBaseEntity {
 
@@ -26,6 +27,7 @@ public class User extends TimeBaseEntity {
     @Column(nullable = false)
     private String name;
 
+    private String profileImage;
 
 
     @Column(nullable = false)

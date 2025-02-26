@@ -1,27 +1,33 @@
 package com.example.OC.security.config;
 
 import com.example.OC.security.jwt.JwtFilter;
-import com.example.OC.security.jwt.JwtUtils;
+import com.example.OC.security.jwt.LoginFilter;
 import com.example.OC.security.oauth2.KakaoOauthService;
 import com.example.OC.security.oauth2.NaverOauthService; // 네이버 OAuth2 서비스 추가
-import jakarta.servlet.Filter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.authentication.AuthenticationManager;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final JwtUtils jwtUtils;
+    private final LoginFilter loginFilter; // LoginFilter 추가
     private final KakaoOauthService kakaoOauthService;
     private final NaverOauthService naverOauthService; // 네이버 OAuth2 서비스 추가
+
+    public SecurityConfig(JwtFilter jwtFilter, LoginFilter loginFilter, KakaoOauthService kakaoOauthService, NaverOauthService naverOauthService) {
+        this.jwtFilter = jwtFilter;
+        this.loginFilter = loginFilter;
+        this.kakaoOauthService = kakaoOauthService;
+        this.naverOauthService = naverOauthService;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,8 +51,11 @@ public class SecurityConfig {
                         )
                 );
 
+        // 로그인 필터 추가 (JwtFilter와 순서 조정)
+        http.addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class); // LoginFilter는 UsernamePasswordAuthenticationFilter 이전에 실행
+
         // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 이전에 실행)
-        http.addFilterBefore((Filter) jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -54,5 +63,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // AuthenticationManager를 Bean으로 정의하여 LoginFilter에서 사용할 수 있도록 함
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class).build();
     }
 }
