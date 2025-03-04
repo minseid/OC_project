@@ -2,10 +2,7 @@ package com.example.OC.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Table(name="Mapping")
 @Entity
@@ -13,6 +10,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class UserMeetingMapping {
 
     @Id

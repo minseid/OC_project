@@ -1,7 +1,6 @@
 package com.example.OC.network.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.util.List;
@@ -12,18 +11,19 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
-public class AddMeetingRequest {
+public class EditMeetingRequest {
+
+    @NotBlank(message = "모임번호를 작성해주세요")
+    private Long id;
 
     @NotBlank(message = "모임명을 작성해주세요")
     private String title;
 
     @NotBlank(message = "초대자를 작성해주세요")
-    private Long fromId;
+    private String fromId;
 
     @NotBlank(message = "모임설명을 작성해주세요")
     private String description;
 
     private String image;
-
-    private List<Long> participants;
 }
