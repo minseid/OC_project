@@ -13,10 +13,10 @@ import org.hibernate.engine.internal.ImmutableEntityEntry;
 public class AddPlaceRequest {
 
     @NotBlank(message = "모임을 입력해주세요")
-    private String meeting;
+    private Long meetingId;
 
     @NotBlank(message = "장소를 공유하는 사람의 유저정보를 입력해주세요")
-    private String user;
+    private Long userid;
 
     @NotBlank(message = "장소이름을 입력해주세요")
     private String name;

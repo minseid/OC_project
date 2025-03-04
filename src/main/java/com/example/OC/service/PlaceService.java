@@ -5,7 +5,9 @@ import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Place;
 import com.example.OC.entity.User;
 import com.example.OC.repository.LinkRepository;
+import com.example.OC.repository.MeetingRepository;
 import com.example.OC.repository.PlaceRepository;
+import com.example.OC.repository.UserRepository;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -29,21 +31,32 @@ public class PlaceService {
 
     private final PlaceRepository placeRepository;
     private final LinkRepository linkRepository;
+    private final MeetingRepository meetingRepository;
+    private final UserRepository userRepository;
 
-    public Place addPlace(Meeting meeting, User user, String name, String address) {
-        Optional<Place> target = placeRepository.findByMeetingAndNameAndAddress(meeting, name, address);
+    //같은 장소를 판단하는 알고리즘 추가해야됨
+    public Place addPlace(Long meetingId, Long userId, String name, String address) {
+        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
+        if(targetMeeting.isEmpty()) {
+            throw new IllegalArgumentException("모임정보가 올바르지 않습니다!");
+        }
+        Optional<User> targetUser = userRepository.findById(userId);
+        if(targetUser.isEmpty()) {
+            throw new IllegalArgumentException("유저정보가 올바르지 않습니다!");
+        }
+        Optional<Place> target = placeRepository.findByMeetingAndNameAndAddress(targetMeeting.get(), name, address);
         if(target.isPresent())
         {
             List<User> users = target.get().getUser();
-            if(users.contains(user))
+            if(users.contains(targetUser.get()))
             {
                 throw new IllegalArgumentException("중복된 장소");
             }
-            users.add(user);
+            users.add(targetUser.get());
             return placeRepository.save(Place.builder()
                             .id(target.get().getId())
                             .name(name)
-                            .meeting(meeting)
+                            .meeting(targetMeeting.get())
                             .user(users)
                             .name(name)
                             .address(address)
@@ -53,16 +66,56 @@ public class PlaceService {
            );
         }else{
             List<User> users = new ArrayList<>();
-            users.add(user);
+            users.add(targetUser.get());
             //여기에 링크생성하는 코드 넣어야됨
             return placeRepository.save(Place.builder()
-                    .meeting(meeting)
+                    .meeting(targetMeeting.get())
                     .user(users)
                     .name(name)
                     .address(address)
                     .like_count(0)
                     .placeStatus(PlaceStatus.NotPicked)
                     .build());
+        }
+    }
+
+    public Place deletePlace(Long placeId, Long meetingId) {
+        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
+        if(targetMeeting.isEmpty()) {
+            throw new IllegalArgumentException("모임정보가 올바르지 않습니다!");
+        }
+        Optional<Place> target = placeRepository.findById(placeId);
+        if(target.isEmpty()) {
+            throw new IllegalArgumentException("장소정보가 올바르지 않습니다!");
+        } else if(target.get().getMeeting().equals(targetMeeting.get())) {
+            placeRepository.delete(target.get());
+            return target.get();
+        } else {
+            throw new IllegalArgumentException("해당 모임에는 이 장소가 없습니다!");
+        }
+    }
+
+    public Place pickPlace(Long placeId, Long meetingId) {
+        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
+        if(targetMeeting.isEmpty()) {
+            throw new IllegalArgumentException("모임정보가 올바르지 않습니다!");
+        }
+        Optional<Place> target = placeRepository.findById(placeId);
+        if(target.isEmpty()) {
+            throw new IllegalArgumentException("장소정보가 올바르지 않습니다!");
+        } else if(target.get().getMeeting().equals(targetMeeting.get())) {
+            Place picked = placeRepository.save(Place.builder()
+                    .id(target.get().getId())
+                    .meeting(targetMeeting.get())
+                    .user(target.get().getUser())
+                    .name(target.get().getName())
+                    .address(target.get().getAddress())
+                    .like_count(target.get().getLike_count()+1)
+                    .placeStatus(target.get().getPlaceStatus())
+                    .build());
+            return picked;
+        } else {
+            throw new IllegalArgumentException("해당 모임에는 이 장소가 없습니다!");
         }
     }
 }

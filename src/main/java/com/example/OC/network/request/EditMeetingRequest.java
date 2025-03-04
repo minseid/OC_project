@@ -20,7 +20,7 @@ public class EditMeetingRequest {
     private String title;
 
     @NotBlank(message = "초대자를 작성해주세요")
-    private String fromId;
+    private Long fromId;
 
     @NotBlank(message = "모임설명을 작성해주세요")
     private String description;

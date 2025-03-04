@@ -33,30 +33,27 @@ public class MeetingService {
     String reception = "";
 
     private String makeLink(){
-        while(!flag) {
+        while (true) {
             Random rnd = new Random();
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
 
-            for(int i=0;i<10;i++){
-                if(rnd.nextBoolean()) {
-                    buf.append((char)(int)(rnd.nextInt(26)+97));
+            for (int i = 0; i < 10; i++) {
+                if (rnd.nextBoolean()) {
+                    buf.append((char) (rnd.nextInt(26) + 97));
                 } else {
-                  buf.append((rnd.nextInt(10)));
+                    buf.append(rnd.nextInt(10));
                 }
             }
+
             String randomCode = buf.toString();
-            if(meetingRepository.findByLink(randomCode).isEmpty()) {
-                flag = true;
-                reception = randomCode;
-            } else {
-                flag = false;
+            if (meetingRepository.findByLink(randomCode).isEmpty()) {
+                return randomCode;
             }
         }
-        return reception;
     }
 
-    public Meeting addMeeting(String title, String description, String image,String fromId, List<Long> friends ) {
-        Optional<User> saveUser = userRepository.findById(Long.parseLong(fromId));
+    public Meeting addMeeting(String title, String description, String image,Long fromId, List<Long> friends ) {
+        Optional<User> saveUser = userRepository.findById(fromId);
         if(saveUser.isEmpty()) {
             throw new IllegalArgumentException("사용자가 없습니다.");
         }
@@ -68,7 +65,7 @@ public class MeetingService {
                 .build();
         friends.forEach(id -> participantRepository.save(Participant.builder()
                 .meeting(target)
-                .fromId(Long.parseLong(fromId))
+                .fromId(fromId)
                 .toId(id)
                 .status(false)
                 .build()));
@@ -76,6 +73,7 @@ public class MeetingService {
                 .meeting(target)
                 .user(saveUser.get())
                 .build());
+        //초대관련 넣어야됨
         return meetingRepository.save(target);
     }
 
@@ -109,5 +107,21 @@ public class MeetingService {
         }
         userMeetingMappingRepository.delete(target.get());
         return targetMeeting.get();
+    }
+
+    public List<Participant> loadParticipants(Long meetingId) {
+        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
+        if(targetMeeting.isEmpty()){
+            throw new IllegalArgumentException("올바르지않은 모임ID입니다!");
+        }
+        return participantRepository.findAllByMeeting(targetMeeting.get());
+    }
+
+    public List<Meeting> getMeetings(Long userId) {
+        Optional<User> targetUser = userRepository.findById(userId);
+        if(targetUser.isEmpty()){
+            throw new IllegalArgumentException("유저를 찾을수 없습니다!");
+        }
+        return userMeetingMappingRepository.findByUser(targetUser.get());
     }
 }
