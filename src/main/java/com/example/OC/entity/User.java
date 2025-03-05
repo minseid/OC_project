@@ -25,8 +25,6 @@ public class User extends TimeBaseEntity {
     @Column(nullable = false)
     private String name;
 
-
-
     @Column(nullable = false)
     private String nickname;
 
@@ -50,5 +48,9 @@ public class User extends TimeBaseEntity {
 
     @Column(nullable = false)
     private boolean alarm;
+
+    @Column(nullable = false,unique = true)
+    private String fcmKey;
+
 
 }
