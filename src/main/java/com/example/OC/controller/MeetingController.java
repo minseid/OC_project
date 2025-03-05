@@ -48,14 +48,14 @@ public class MeetingController extends ExceptionManager {
         return ResponseEntity.ok(modelMapper.map(deleted, QuitMeetingResponse.class));
     }
 
-    @GetMapping("/api/meeting/participant")
-    public ResponseEntity<List<Participant>> getParticipants(@RequestBody Long meetingId) {
+    @GetMapping("/api/meeting/participant/{id}")
+    public ResponseEntity<List<Participant>> getParticipants(@PathVariable("id") Long meetingId) {
         List<Participant> participants = meetingService.loadParticipants(meetingId);
         return ResponseEntity.ok(participants);
     }
 
-    @GetMapping("/api/meeting")
-    public ResponseEntity<List<Meeting>> getMeetings(@RequestBody Long userId) {
+    @GetMapping("/api/meeting/{id}")
+    public ResponseEntity<List<Meeting>> getMeetings(@PathVariable("id") Long userId) {
         List<Meeting> meetings = meetingService.getMeetings(userId);
         return ResponseEntity.ok(meetings);
     }

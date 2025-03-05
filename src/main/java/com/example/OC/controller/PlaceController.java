@@ -1,6 +1,7 @@
 package com.example.OC.controller;
 
 import com.example.OC.constant.ExceptionManager;
+import com.example.OC.entity.Comment;
 import com.example.OC.entity.Place;
 import com.example.OC.network.request.AddPlaceRequest;
 import com.example.OC.network.request.CommonPlaceRequest;
