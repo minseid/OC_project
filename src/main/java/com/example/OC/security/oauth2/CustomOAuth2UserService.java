@@ -3,6 +3,7 @@ package com.example.OC.security.oauth2;
 import com.example.OC.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService; // DefaultOAuth2UserService로 수정
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
+@Primary
 public class CustomOAuth2UserService extends DefaultOAuth2UserService { // 변경된 부모 클래스
     private final UserRepository userRepository;
 
