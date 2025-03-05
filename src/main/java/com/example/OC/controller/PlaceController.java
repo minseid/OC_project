@@ -38,7 +38,6 @@ public class PlaceController extends ExceptionManager {
         return ResponseEntity.ok(target);
     }
 
-    @PostMapping("/api/place/comment")
 
 
 }

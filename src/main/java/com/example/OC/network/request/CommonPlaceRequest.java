@@ -1,5 +1,6 @@
 package com.example.OC.network.request;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 

@@ -1,5 +1,6 @@
 package com.example.OC.service;
 
+import com.example.OC.constant.SendType;
 import com.example.OC.entity.Meeting;
 import com.example.OC.network.fcm.FCMMessageDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//서비스 구현 완료 근데 전송내용은 결정해서 수정해야됨
 @Service
 @RequiredArgsConstructor
 public class FCMService {
@@ -36,8 +38,12 @@ public class FCMService {
     private final String API_URL = "https://fcm.googleapis.com/v1/projects/audi-8284f/messages:send";
     private final ObjectMapper objectMapper;
 
-    public void sendNotificationToken(String targetToken, String title, String body) throws IOException {
-        String message = makeNotification(targetToken,title,body);
+    public void sendMessageToken(String targetToken, String title, String body, String image, Object dataObject, SendType sendType) throws IOException {
+        String message = switch (sendType) {
+            case Data -> makeData(targetToken, dataObject);
+            case Notification -> makeNotification(targetToken, title, body, image);
+            default -> makeNotiAndData(targetToken, title, body, image, dataObject);
+        };
 
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
@@ -54,7 +60,7 @@ public class FCMService {
         System.out.println(response.body().string());
     }
 
-    public String makeNotification(String targetToken, String title, String body) throws JsonProcessingException {
+    public String makeNotification(String targetToken, String title, String body, String image) throws JsonProcessingException {
 
         FCMMessageDto fcmMessageDto = FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
@@ -62,7 +68,7 @@ public class FCMService {
                         .notification(FCMMessageDto.Notification.builder()
                                 .title(title)
                                 .body(body)
-                                .image(null)
+                                .image(image)
                                 .build())
                         .build())
                 .validate_only(false)
@@ -71,13 +77,33 @@ public class FCMService {
         return objectMapper.writeValueAsString(fcmMessageDto);
     }
 
-    public String makeData(String targetToken, String title, String body, Object dataObject) throws JsonProcessingException {
+    public String makeData(String targetToken, Object dataObject) throws JsonProcessingException {
 
         Map<String, String> dataMap = objectMapper.convertValue(dataObject,Map.class);
 
         FCMMessageDto fcmMessageDto = FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
                         .token(targetToken)
+                        .data(dataMap)
+                        .build())
+                .validate_only(false)
+                .build();
+
+        return objectMapper.writeValueAsString(fcmMessageDto);
+    }
+
+    public String makeNotiAndData(String targetToken, String title, String body, String image, Object dataObject) throws JsonProcessingException {
+
+        Map<String, String> dataMap = objectMapper.convertValue(dataObject,Map.class);
+
+        FCMMessageDto fcmMessageDto= FCMMessageDto.builder()
+                .message(FCMMessageDto.Message.builder()
+                        .token(targetToken)
+                        .notification(FCMMessageDto.Notification.builder()
+                                .title(title)
+                                .body(body)
+                                .image(image)
+                                .build())
                         .data(dataMap)
                         .build())
                 .validate_only(false)

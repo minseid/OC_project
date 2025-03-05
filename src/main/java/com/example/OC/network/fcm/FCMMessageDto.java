@@ -1,6 +1,6 @@
 package com.example.OC.network.fcm;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +10,7 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FCMMessageDto {
 
     private boolean validate_only;
@@ -18,6 +19,7 @@ public class FCMMessageDto {
     @Builder
     @AllArgsConstructor
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Message {
         private Notification notification;
         private Map<String,String> data;
@@ -27,6 +29,7 @@ public class FCMMessageDto {
     @Builder
     @AllArgsConstructor
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Notification {
         private String title;
         private String body;

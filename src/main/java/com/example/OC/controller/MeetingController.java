@@ -11,6 +11,7 @@ import com.example.OC.network.response.EditMeetingResponse;
 import com.example.OC.network.response.QuitMeetingResponse;
 import com.example.OC.repository.MeetingRepository;
 import com.example.OC.repository.ParticipantRepository;
+import com.example.OC.service.FCMService;
 import com.example.OC.service.MeetingService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -26,12 +27,12 @@ public class MeetingController extends ExceptionManager {
 
     private final MeetingService meetingService;
     private final ModelMapper modelMapper;
+    private final FCMService fcmService;
 
 
     @PostMapping("/api/meeting/add")
     public ResponseEntity<AddMeetingResponse> addMeeting(@RequestBody AddMeetingRequest request) {
         Meeting saved = meetingService.addMeeting(request.getTitle(), request.getDescription(), request.getImage(), request.getFromId(),request.getParticipants());
-        //여기에 초대관련 넣거나 서비스단에 초대를 넣어야될듯
         return ResponseEntity.ok(modelMapper.map(saved, AddMeetingResponse.class));
     }
 
