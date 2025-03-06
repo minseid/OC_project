@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/user")
 public class UserControlller {
     private final UserService userService;
+    /*
     //유저 회원가입
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(SignUpRequest signUpRequest){ {
@@ -32,4 +33,5 @@ public class UserControlller {
         UserResponse userResponse = userService.mypage(userId);
         return ResponseEntity.ok(userResponse);
     }
+     */
 }

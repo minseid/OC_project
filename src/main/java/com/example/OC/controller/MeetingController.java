@@ -5,6 +5,7 @@ import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Participant;
 import com.example.OC.network.request.AddMeetingRequest;
 import com.example.OC.network.request.EditMeetingRequest;
+import com.example.OC.network.request.InviteRequest;
 import com.example.OC.network.request.QuitMeetingRequest;
 import com.example.OC.network.response.AddMeetingResponse;
 import com.example.OC.network.response.EditMeetingResponse;
@@ -60,12 +61,16 @@ public class MeetingController extends ExceptionManager {
         return ResponseEntity.ok(meetings);
     }
 
-    //@PostMapping("/api/meeting/invite")
-    //초대는 서버알림공부후에 작성
+    @PostMapping("/api/meeting/invite")
+    public ResponseEntity<Participant> inviteMeeting(@RequestBody InviteRequest request) {
+        Participant saved = meetingService.addParticipant(request.getMeetingId(), request.getFromId(), request.getToId());
+        return ResponseEntity.ok(saved);
+    }
 
-//    @ExceptionHandler(IllegalArgumentException.class)
-//    public ResponseEntity<String> handlerIllegalAccess(IllegalArgumentException e) {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//    }
+    @PostMapping("/api/meeting/invite/ok/{id}")
+    public ResponseEntity<Meeting> inviteOk(@PathVariable Long id) {
+        return ResponseEntity.ok(meetingService.inviteOk(id));
+    }
+
 
 }

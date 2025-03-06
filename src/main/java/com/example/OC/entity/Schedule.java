@@ -20,7 +20,7 @@ public class Schedule {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false,unique = true)
     private Meeting meeting;
 
     @Column(nullable = false)

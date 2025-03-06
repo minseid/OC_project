@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.Map;
 //서비스 구현 완료 근데 전송내용은 결정해서 수정해야됨
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FCMService {
 
     //fcm으로 전송을 위한 accesstoken발급
@@ -37,8 +39,10 @@ public class FCMService {
 
     private final String API_URL = "https://fcm.googleapis.com/v1/projects/audi-8284f/messages:send";
     private final ObjectMapper objectMapper;
+    private final FindService findService;
 
-    public void sendMessageToken(String targetToken, String title, String body, String image, Object dataObject, SendType sendType) throws IOException {
+    public void sendMessageToken(Long userId, String title, String body, String image, Object dataObject, SendType sendType) throws IOException {
+        String targetToken = findService.findUser(userId).getFcmKey();
         String message = switch (sendType) {
             case Data -> makeData(targetToken, dataObject);
             case Notification -> makeNotification(targetToken, title, body, image);

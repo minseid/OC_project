@@ -19,20 +19,12 @@ import java.util.*;
 @Getter
 @ToString
 @Builder
-@RequiredArgsConstructor
 @Transactional
 @Slf4j
-public class MeetingService {
-
-    private final MeetingRepository meetingRepository;
-    private final ParticipantRepository participantRepository;
-    private final UserMeetingMappingRepository userMeetingMappingRepository;
-    private final UserRepository userRepository;
-
-    boolean flag = false;
-    String reception = "";
+public class MeetingService extends FindService {
 
     private String makeLink(){
+
         while (true) {
             Random rnd = new Random();
             StringBuilder buf = new StringBuilder();
@@ -52,16 +44,13 @@ public class MeetingService {
         }
     }
 
-    public Meeting addMeeting(String title, String description, String image,Long fromId, List<Long> friends ) {
-        Optional<User> saveUser = userRepository.findById(fromId);
-        if(saveUser.isEmpty()) {
-            throw new IllegalArgumentException("사용자가 없습니다.");
-        }
+    public Meeting addMeeting(String title, String description, String image, Long fromId, List<Long> friends ) {
+
         Meeting target = Meeting.builder()
                 .title(title)
                 .description(description)
                 .link(makeLink())
-                .image(image==null?null:image)
+                .image(image)
                 .build();
         friends.forEach(id -> participantRepository.save(Participant.builder()
                 .meeting(target)
@@ -71,57 +60,64 @@ public class MeetingService {
                 .build()));
         userMeetingMappingRepository.save(UserMeetingMapping.builder()
                 .meeting(target)
-                .user(saveUser.get())
+                .user(findUser(fromId))
                 .build());
         //초대관련 넣어야됨
         return meetingRepository.save(target);
     }
 
     public Meeting editMeeting(Long id, String title, String description, String image) {
-        Optional<Meeting> current = meetingRepository.findById(id);
-        if(current.isEmpty()){
-            throw new IllegalArgumentException("모임id가 올바르지 않습니다.");
-        }
+
         Meeting target = Meeting.builder()
                 .id(id)
                 .title(title)
                 .description(description)
-                .link(current.get().getLink())
-                .image(image==null?null:image)
+                .link(findMeeting(id).getLink())
+                .image(image)
                 .build();
         return meetingRepository.save(target);
     }
 
     public Meeting quitMeeting(Long userId, Long meetingId) {
-        Optional<User> targetUser = userRepository.findById(userId);
-        if(targetUser.isEmpty()){
-            throw new IllegalArgumentException("유저정보가 올바르지 않습니다!");
-        }
-        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
-        if(targetMeeting.isEmpty()){
-            throw new IllegalArgumentException("모임정보고 올바르지 않습니다!");
-        }
-        Optional<UserMeetingMapping> target = userMeetingMappingRepository.findByUserAndMeeting(targetUser.get(),targetMeeting.get());
-        if(target.isEmpty()) {
-            throw new IllegalArgumentException("해당유저는 해당모임에 가입되어있지 않습니다!");
-        }
-        userMeetingMappingRepository.delete(target.get());
-        return targetMeeting.get();
+
+        userMeetingMappingRepository.delete(findUserMeetingMapping(userId, meetingId));
+        return findMeeting(meetingId);
     }
 
     public List<Participant> loadParticipants(Long meetingId) {
-        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
-        if(targetMeeting.isEmpty()){
-            throw new IllegalArgumentException("올바르지않은 모임ID입니다!");
-        }
-        return participantRepository.findAllByMeeting(targetMeeting.get());
+
+        Meeting targetMeeting = findMeeting(meetingId);
+        return participantRepository.findAllByMeeting(targetMeeting);
     }
 
     public List<Meeting> getMeetings(Long userId) {
-        Optional<User> targetUser = userRepository.findById(userId);
-        if(targetUser.isEmpty()){
-            throw new IllegalArgumentException("유저를 찾을수 없습니다!");
-        }
-        return userMeetingMappingRepository.findByUser(targetUser.get());
+
+        User targetUser = findUser(userId);
+        return userMeetingMappingRepository.findByUser(targetUser);
+    }
+
+    public Participant addParticipant(Long meetingId, Long fromId, Long toId) {
+
+        findUser(fromId);
+        findUser(toId);
+        return participantRepository.save(Participant.builder()
+                .meeting(findMeeting(meetingId))
+                .fromId(fromId)
+                .toId(toId)
+                .status(false)
+                .build());
+    }
+
+    public Meeting inviteOk(Long id) {
+
+        Participant target = findParticipant(id);
+        participantRepository.save(Participant.builder()
+                .id(target.getId())
+                .meeting(target.getMeeting())
+                .fromId(target.getFromId())
+                .toId(target.getToId())
+                .status(true)
+                .build());
+        return target.getMeeting();
     }
 }

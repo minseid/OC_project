@@ -4,6 +4,7 @@ import com.example.OC.constant.ExceptionManager;
 import com.example.OC.entity.Comment;
 import com.example.OC.entity.Place;
 import com.example.OC.network.request.*;
+import com.example.OC.network.response.GetCommentResponse;
 import com.example.OC.service.PlaceService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -56,6 +57,9 @@ public class PlaceController extends ExceptionManager {
     }
 
     @GetMapping("/api/place/comment/{id}")
-    public ResponseEntity<List<Comment>>
+    public ResponseEntity<List<GetCommentResponse>> getComments(@PathVariable Long id) {
+        List<GetCommentResponse> comments = placeService.getComment(id);
+        return ResponseEntity.ok(comments);
+    }
 
 }

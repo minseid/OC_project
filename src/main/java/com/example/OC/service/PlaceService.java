@@ -5,6 +5,7 @@ import com.example.OC.entity.Comment;
 import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Place;
 import com.example.OC.entity.User;
+import com.example.OC.network.response.GetCommentResponse;
 import com.example.OC.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Getter
@@ -69,11 +71,11 @@ public class PlaceService extends FindService {
     }
 
     public Place pickPlace(Long placeId, Long meetingId) {
-        Meeting targetMeeting = findMeeting(meetingId);
+
         Place target = findPlace(placeId);
         Place picked = placeRepository.save(Place.builder()
                     .id(target.getId())
-                    .meeting(targetMeeting)
+                    .meeting(findMeeting(meetingId))
                     .user(target.getUser())
                     .name(target.getName())
                     .address(target.getAddress())
@@ -120,8 +122,9 @@ public class PlaceService extends FindService {
         }
     }
 
-    public List<Comment> getComment(Long placeId) {
-        return commentRepository.findAllByPlace(findPlace(placeId));
+    public List<GetCommentResponse> getComment(Long placeId) {
+        List<Comment> target = commentRepository.findAllByPlace(findPlace(placeId));
+        return target.stream().map(GetCommentResponse::toDto).collect(Collectors.toList());
     }
 
 }
