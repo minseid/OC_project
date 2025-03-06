@@ -55,6 +55,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+	implementation 'org.jasypt:jasypt-spring-boot-starter:3.0.3'
+
 
 }
 

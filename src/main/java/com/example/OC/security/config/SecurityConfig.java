@@ -22,6 +22,7 @@ public class SecurityConfig {
     private final KakaoOauthService kakaoOauthService;
     private final NaverOauthService naverOauthService; // 네이버 OAuth2 서비스 추가
 
+    // 생성자 주입
     public SecurityConfig(JwtFilter jwtFilter, LoginFilter loginFilter, KakaoOauthService kakaoOauthService, NaverOauthService naverOauthService) {
         this.jwtFilter = jwtFilter;
         this.loginFilter = loginFilter;
@@ -37,7 +38,7 @@ public class SecurityConfig {
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login/**").permitAll() // 로그인 관련 URL 허용
+                        .requestMatchers("/", "/login/**", "/oauth2/**").permitAll() // 로그인 관련 URL 허용
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 )
 
@@ -49,17 +50,18 @@ public class SecurityConfig {
                                 .userService(kakaoOauthService) // 카카오 사용자 정보 처리 서비스 등록
                                 .userService(naverOauthService) // 네이버 사용자 정보 처리 서비스 등록
                         )
-                );
+                )
 
-        // 로그인 필터 추가 (JwtFilter와 순서 조정)
-        http.addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class); // LoginFilter는 UsernamePasswordAuthenticationFilter 이전에 실행
+                // 로그인 필터 추가 (JwtFilter와 순서 조정)
+                .addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class) // LoginFilter는 UsernamePasswordAuthenticationFilter 이전에 실행
 
-        // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 이전에 실행)
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 이전에 실행)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // 비밀번호 인코딩 설정
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
