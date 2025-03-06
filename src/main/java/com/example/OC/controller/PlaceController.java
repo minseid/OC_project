@@ -3,16 +3,14 @@ package com.example.OC.controller;
 import com.example.OC.constant.ExceptionManager;
 import com.example.OC.entity.Comment;
 import com.example.OC.entity.Place;
-import com.example.OC.network.request.AddPlaceRequest;
-import com.example.OC.network.request.CommonPlaceRequest;
+import com.example.OC.network.request.*;
 import com.example.OC.service.PlaceService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,7 +27,7 @@ public class PlaceController extends ExceptionManager {
 
     @DeleteMapping("/api/place/delete")
     public ResponseEntity<Place> deletePlace(@RequestBody CommonPlaceRequest request) {
-        Place target = placeService.deletePlace(request.getPlaceId(), request.getMeetingId());
+        Place target = placeService.deletePlace(request.getPlaceId());
         return ResponseEntity.ok(target);
     }
 
@@ -39,6 +37,25 @@ public class PlaceController extends ExceptionManager {
         return ResponseEntity.ok(target);
     }
 
+    @PostMapping("/api/place/comment/add")
+    public ResponseEntity<Comment> addComment(@RequestBody AddCommentRequest request) {
+        Comment saved = placeService.addComment(request.getPlaceId(), request.getUserId(), request.getDescription());
+        return ResponseEntity.ok(saved);
+    }
 
+    @PutMapping("/api/place/comment/edit")
+    public ResponseEntity<Comment> editComment(@RequestBody EditCommentRequest request) {
+        Comment edited = placeService.editComment(request.getCommentId(), request.getUserId(), request.getDescription());
+        return ResponseEntity.ok(edited);
+    }
+
+    @DeleteMapping("/api/place/comment/delete")
+    public ResponseEntity<Comment> deleteComment(@RequestBody DeleteCommentRequest request) {
+        Comment deleted = placeService.deleteComment(request.getCommentId(), request.getUserId());
+        return ResponseEntity.ok(deleted);
+    }
+
+    @GetMapping("/api/place/comment/{id}")
+    public ResponseEntity<List<Comment>>
 
 }

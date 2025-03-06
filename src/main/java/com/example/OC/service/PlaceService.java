@@ -1,17 +1,12 @@
 package com.example.OC.service;
 
 import com.example.OC.constant.PlaceStatus;
+import com.example.OC.entity.Comment;
 import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Place;
 import com.example.OC.entity.User;
-import com.example.OC.repository.LinkRepository;
-import com.example.OC.repository.MeetingRepository;
-import com.example.OC.repository.PlaceRepository;
-import com.example.OC.repository.UserRepository;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import com.example.OC.repository.*;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,42 +16,30 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Getter
 @ToString
 @Builder
 @Transactional
 @Slf4j
-public class PlaceService {
-
-    private final PlaceRepository placeRepository;
-    private final LinkRepository linkRepository;
-    private final MeetingRepository meetingRepository;
-    private final UserRepository userRepository;
+public class PlaceService extends FindService {
 
     //같은 장소를 판단하는 알고리즘 추가해야됨
     public Place addPlace(Long meetingId, Long userId, String name, String address) {
-        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
-        if(targetMeeting.isEmpty()) {
-            throw new IllegalArgumentException("모임정보가 올바르지 않습니다!");
-        }
-        Optional<User> targetUser = userRepository.findById(userId);
-        if(targetUser.isEmpty()) {
-            throw new IllegalArgumentException("유저정보가 올바르지 않습니다!");
-        }
-        Optional<Place> target = placeRepository.findByMeetingAndNameAndAddress(targetMeeting.get(), name, address);
+        Meeting targetMeeting = findMeeting(meetingId);
+        User targetUser = findUser(userId);
+        Optional<Place> target = placeRepository.findByMeetingAndNameAndAddress(targetMeeting, name, address);
         if(target.isPresent())
         {
             List<User> users = target.get().getUser();
-            if(users.contains(targetUser.get()))
+            if(users.contains(targetUser))
             {
                 throw new IllegalArgumentException("중복된 장소");
             }
-            users.add(targetUser.get());
+            users.add(targetUser);
             return placeRepository.save(Place.builder()
                             .id(target.get().getId())
                             .name(name)
-                            .meeting(targetMeeting.get())
+                            .meeting(targetMeeting)
                             .user(users)
                             .name(name)
                             .address(address)
@@ -66,10 +49,10 @@ public class PlaceService {
            );
         }else{
             List<User> users = new ArrayList<>();
-            users.add(targetUser.get());
+            users.add(targetUser);
             //여기에 링크생성하는 코드 넣어야됨
             return placeRepository.save(Place.builder()
-                    .meeting(targetMeeting.get())
+                    .meeting(targetMeeting)
                     .user(users)
                     .name(name)
                     .address(address)
@@ -79,43 +62,66 @@ public class PlaceService {
         }
     }
 
-    public Place deletePlace(Long placeId, Long meetingId) {
-        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
-        if(targetMeeting.isEmpty()) {
-            throw new IllegalArgumentException("모임정보가 올바르지 않습니다!");
-        }
-        Optional<Place> target = placeRepository.findById(placeId);
-        if(target.isEmpty()) {
-            throw new IllegalArgumentException("장소정보가 올바르지 않습니다!");
-        } else if(target.get().getMeeting().equals(targetMeeting.get())) {
-            placeRepository.delete(target.get());
-            return target.get();
-        } else {
-            throw new IllegalArgumentException("해당 모임에는 이 장소가 없습니다!");
-        }
+    public Place deletePlace(Long placeId) {
+        Place target = findPlace(placeId);
+        placeRepository.delete(target);
+        return target;
     }
 
     public Place pickPlace(Long placeId, Long meetingId) {
-        Optional<Meeting> targetMeeting = meetingRepository.findById(meetingId);
-        if(targetMeeting.isEmpty()) {
-            throw new IllegalArgumentException("모임정보가 올바르지 않습니다!");
-        }
-        Optional<Place> target = placeRepository.findById(placeId);
-        if(target.isEmpty()) {
-            throw new IllegalArgumentException("장소정보가 올바르지 않습니다!");
-        } else if(target.get().getMeeting().equals(targetMeeting.get())) {
-            Place picked = placeRepository.save(Place.builder()
-                    .id(target.get().getId())
-                    .meeting(targetMeeting.get())
-                    .user(target.get().getUser())
-                    .name(target.get().getName())
-                    .address(target.get().getAddress())
-                    .like_count(target.get().getLike_count()+1)
-                    .placeStatus(target.get().getPlaceStatus())
+        Meeting targetMeeting = findMeeting(meetingId);
+        Place target = findPlace(placeId);
+        Place picked = placeRepository.save(Place.builder()
+                    .id(target.getId())
+                    .meeting(targetMeeting)
+                    .user(target.getUser())
+                    .name(target.getName())
+                    .address(target.getAddress())
+                    .like_count(target.getLike_count()+1)
+                    .placeStatus(target.getPlaceStatus())
                     .build());
             return picked;
+    }
+
+    public Comment addComment(Long placeId, Long userId, String description) {
+
+        Place targetPlace = findPlace(placeId);
+        User targetUser = findUser(userId);
+        Comment saved = Comment.builder()
+                .place(targetPlace)
+                .user(targetUser)
+                .description(description)
+                .build();
+        return commentRepository.save(saved);
+    }
+
+    public Comment editComment(Long commentId, Long userId, String description) {
+
+        Comment target = findComment(commentId);
+        if(target.getUser().getId().equals(userId)) {
+            return commentRepository.save(Comment.builder()
+                            .id(commentId)
+                            .place(target.getPlace())
+                            .user(target.getUser())
+                            .description(description)
+                            .build());
         } else {
-            throw new IllegalArgumentException("해당 모임에는 이 장소가 없습니다!");
+            throw new IllegalArgumentException("이 코멘트를 작성한 유저가 아닙니다!");
         }
     }
+
+    public Comment deleteComment (Long commentId,Long userId) {
+        Comment target = findComment(commentId);
+        if(target.getUser().getId().equals(userId)) {
+            commentRepository.delete(target);
+            return target;
+        } else {
+            throw new IllegalArgumentException("이 코멘트를 작성한 유저가 아닙니다!");
+        }
+    }
+
+    public List<Comment> getComment(Long placeId) {
+        return commentRepository.findAllByPlace(findPlace(placeId));
+    }
+
 }
