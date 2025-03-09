@@ -34,14 +34,6 @@ public class Place extends TimeBaseEntity {
     @Column(nullable = false)
     private String address;
 
-    //latitude 위도
-    @Column(nullable = false)
-    private float lat;
-
-    //longitude 경도
-    @Column(nullable = false)
-    private float lng;
-
     @Column(nullable = false)
     private long like_count;
 

@@ -44,27 +44,36 @@ public class PlaceService {
 
     //같은 장소를 판단하는 알고리즘 추가해야됨
     public Place addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
+        //meetingId 유효성 확인 및 겹치는거 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         try {
-            Place target = findService.valid(placeRepository.findByMeetingAndNameAndAddress(targetMeeting, name, address),EntityType.Place);
-            List<User> users = target.getUser();
-            if(users.contains(targetUser))
-            {
-                throw new IllegalArgumentException("중복된 장소");
+            Optional<Place> target = placeRepository.findByMeetingAndNameAndAddress(targetMeeting, name, address);
+            if(target.isPresent()) {
+                List<User> users = target.get().getUser();
+                if(users.contains(targetUser))
+                {
+                    throw new IllegalArgumentException("중복된 장소를 공유했습니다!");
+                }
+                users.add(targetUser);
+                return placeRepository.save(Place.builder()
+                        .id(target.get().getId())
+                        .name(name)
+                        .meeting(targetMeeting)
+                        .user(users)
+                        .name(name)
+                        .address(address)
+                        .like_count(target.get().getLike_count())
+                        .placeStatus(target.get().getPlaceStatus())
+                        .build());
+            } else {
+                List<User> newUser = new ArrayList<>();
+                newUser.add(targetUser);
+                return placeRepository.save(Place.builder()
+                        .name(name)
+                        .meeting(targetMeeting)
+                        .build());
             }
-            users.add(targetUser);
-            return placeRepository.save(Place.builder()
-                    .id(target.getId())
-                    .name(name)
-                    .meeting(targetMeeting)
-                    .user(users)
-                    .name(name)
-                    .address(address)
-                    .like_count(target.getLike_count())
-                    .placeStatus(target.getPlaceStatus())
-                    .build()
-            );
         } catch (IllegalStateException e) {
 
             List<User> users = new ArrayList<>();

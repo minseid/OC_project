@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +22,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
 
+    @Autowired
     public JwtFilter(JWTUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
@@ -32,9 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
-                // 토큰 만료 여부 체크
                 if (!jwtUtil.isTokenExpired(token)) {
-                    // 토큰에서 사용자 정보 및 역할 추출
                     String username = jwtUtil.extractUsername(token);
                     String role = jwtUtil.extractRole(token);
 
@@ -44,17 +44,22 @@ public class JwtFilter extends OncePerRequestFilter {
                             null,
                             Collections.singletonList(new SimpleGrantedAuthority(role))
                     );
-                    // Spring Security Context에 인증 정보 설정
                     SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    // 토큰 만료 시 로깅 또는 에러 처리
+                    logger.info("Token is expired.");
+                    // response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
                 }
             } catch (JwtException e) {
-                // JWT 처리 오류 발생 시, SecurityContext 초기화
+                // JWT 처리 오류 발생 시, SecurityContext 초기화 및 로깅
                 SecurityContextHolder.clearContext();
+                logger.error("JWT processing error: ", e);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
             }
         }
-        // 다음 필터로 요청 전달
         chain.doFilter(request, response);
     }
+
 
     // Authorization 헤더에서 Bearer 토큰 추출
     private String extractToken(HttpServletRequest request) {
