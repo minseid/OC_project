@@ -8,14 +8,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsMvcConfig implements WebMvcConfigurer {
 
-    // CORS 설정
+    /**
+     * 로그인의 경우 시큐리티 필터만 통과 후 응답이 되기 때문에 SecurityConfig에 설정한 CORS 값으로 진행되고,
+     * 컨트롤러를 타고 응답되는 경우 WebMvcConfigurer 설정을 통해 진행
+     */
+
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")  // 모든 경로에 대해 CORS 설정
-                .allowedOrigins("http://localhost:3000", "https://your-frontend-domain.com")  // 허용할 도메인 추가
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")  // 허용할 HTTP 메서드 설정
-                .allowedHeaders("*")  // 허용할 헤더 설정
-                .allowCredentials(true)  // 인증 정보를 포함한 요청 허용 (쿠키 등)
-                .maxAge(3600);  // CORS 요청을 캐시하는 시간 (초 단위)
+    public void addCorsMappings(CorsRegistry corsRegistry) {
+        corsRegistry.addMapping("**")
+                .allowedOrigins("http://localhost:3000");
+
     }
 }
