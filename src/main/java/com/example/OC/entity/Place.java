@@ -3,10 +3,7 @@ package com.example.OC.entity;
 
 import com.example.OC.constant.PlaceStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -16,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class Place extends TimeBaseEntity {
 
     @Id

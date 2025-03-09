@@ -1,4 +1,4 @@
-package com.example.OC.entity;
+package com.example.OC.constant;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
