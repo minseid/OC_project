@@ -31,9 +31,9 @@ public class UserService {
         }
 
         // Check if nickname is already taken
-        boolean existsByNickname = userRepository.existsByNickname(request.getNickname());
+        boolean existsByNickname = userRepository.existsByNickname(request.getName());
         if (existsByNickname) {
-            log.error("Nickname already exists: {}", request.getNickname());
+            log.error("Nickname already exists: {}", request.getName());
             throw new IllegalStateException("이미 사용 중인 닉네임입니다."); // Nickname already exists
         }
 
@@ -45,7 +45,7 @@ public class UserService {
                 .email(request.getEmail())
                 .password(encryptedPassword)
                 .name(request.getName())
-                .nickname(request.getNickname()) // Assuming you are using nickname
+                .nickName(request.getName()) // Assuming you are using nickname
                 .build();
 
         // Save the user to the database
@@ -58,7 +58,7 @@ public class UserService {
         return SignUpResponse.builder()
                 .email(savedUser.getEmail())
                 .name(savedUser.getName())
-                .nickname(savedUser.getNickname())
+                .nickname(savedUser.getName())
                 .build();
     }
 
@@ -87,7 +87,7 @@ public class UserService {
         return UserResponse.builder()
                 .email(user.getEmail())
                 .name(user.getName())
-                .nickname(user.getNickname()) // Assuming you have a nickname
+                .nickname(user.getName()) // Assuming you have a nickname
                 .profileImage(user.getProfileImage()) // Assuming you have profile image
                 .build();
     }

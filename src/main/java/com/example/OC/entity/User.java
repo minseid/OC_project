@@ -30,9 +30,10 @@ public class User extends TimeBaseEntity {
 
     private String profileImage;
 
+    private String fcmKey;
 
     @Column(nullable = false)
-    private String nickname;
+    private String nickName;
 
     @Column
     private String email;
