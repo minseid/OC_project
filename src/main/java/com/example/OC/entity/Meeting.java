@@ -31,9 +31,12 @@ public class Meeting extends TimeBaseEntity {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false,unique = true)
+    @Column(unique = true)
     private String link;
 
     @Column
     private String image;
+
+    @Column(nullable = false)
+    private boolean finished;
 }

@@ -23,7 +23,5 @@ public class AddMeetingRequest {
     @NotBlank(message = "모임설명을 작성해주세요")
     private String description;
 
-    private String image;
-
     private List<Long> participants;
 }

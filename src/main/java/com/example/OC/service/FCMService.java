@@ -1,8 +1,10 @@
 package com.example.OC.service;
 
+import com.example.OC.constant.EntityType;
 import com.example.OC.constant.SendType;
 import com.example.OC.entity.Meeting;
 import com.example.OC.network.fcm.FCMMessageDto;
+import com.example.OC.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -26,6 +28,7 @@ import java.util.Map;
 @Transactional
 public class FCMService {
 
+
     //fcm으로 전송을 위한 accesstoken발급
     private String getAccessToken() throws IOException {
         String firebaseConfigPath = "firebase/firebase_service_key.json";
@@ -40,13 +43,14 @@ public class FCMService {
     private final String API_URL = "https://fcm.googleapis.com/v1/projects/audi-8284f/messages:send";
     private final ObjectMapper objectMapper;
     private final FindService findService;
+    private final UserRepository userRepository;
 
-    public void sendMessageToken(Long userId, String title, String body, String image, Object dataObject, SendType sendType) throws IOException {
-        String targetToken = findService.findUser(userId).getFcmKey();
+    public void sendMessageToken(Long userId, String title, String body, Object dataObject, SendType sendType) throws IOException {
+        String targetToken = findService.valid(userRepository.findById(userId), EntityType.User).getFcmKey();
         String message = switch (sendType) {
             case Data -> makeData(targetToken, dataObject);
-            case Notification -> makeNotification(targetToken, title, body, image);
-            default -> makeNotiAndData(targetToken, title, body, image, dataObject);
+            case Notification -> makeNotification(targetToken, title, body);
+            default -> makeNotiAndData(targetToken, title, body, dataObject);
         };
 
         OkHttpClient client = new OkHttpClient();
@@ -64,7 +68,7 @@ public class FCMService {
         System.out.println(response.body().string());
     }
 
-    public String makeNotification(String targetToken, String title, String body, String image) throws JsonProcessingException {
+    public String makeNotification(String targetToken, String title, String body) throws JsonProcessingException {
 
         FCMMessageDto fcmMessageDto = FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
@@ -72,7 +76,6 @@ public class FCMService {
                         .notification(FCMMessageDto.Notification.builder()
                                 .title(title)
                                 .body(body)
-                                .image(image)
                                 .build())
                         .build())
                 .validate_only(false)
@@ -96,7 +99,7 @@ public class FCMService {
         return objectMapper.writeValueAsString(fcmMessageDto);
     }
 
-    public String makeNotiAndData(String targetToken, String title, String body, String image, Object dataObject) throws JsonProcessingException {
+    public String makeNotiAndData(String targetToken, String title, String body, Object dataObject) throws JsonProcessingException {
 
         Map<String, String> dataMap = objectMapper.convertValue(dataObject,Map.class);
 
@@ -106,7 +109,6 @@ public class FCMService {
                         .notification(FCMMessageDto.Notification.builder()
                                 .title(title)
                                 .body(body)
-                                .image(image)
                                 .build())
                         .data(dataMap)
                         .build())

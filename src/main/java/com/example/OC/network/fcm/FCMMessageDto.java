@@ -33,6 +33,5 @@ public class FCMMessageDto {
     public static class Notification {
         private String title;
         private String body;
-        private String image;
     }
 }

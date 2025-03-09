@@ -12,5 +12,7 @@ public interface UserMeetingMappingRepository extends JpaRepository<UserMeetingM
 
     Optional<UserMeetingMapping> findByUserAndMeeting(User user, Meeting meeting);
 
-    List<Meeting> findByUser(User user);
+    List<UserMeetingMapping> findByUser(User user);
+
+    List<UserMeetingMapping> findByMeeting(Meeting meeting);
 }
