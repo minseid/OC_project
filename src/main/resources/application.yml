@@ -2,11 +2,16 @@ spring:
   application:
     name: OC
 
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://<IP>:<Port>/<DB>?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://<IP>:<Port>/<DB>?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/shoppingmall?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 613986
 
   jpa:
     show-sql: true

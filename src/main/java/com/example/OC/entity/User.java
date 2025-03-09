@@ -1,6 +1,7 @@
 package com.example.OC.entity;
 
 
+import com.example.OC.constant.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
