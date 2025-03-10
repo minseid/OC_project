@@ -41,7 +41,7 @@ public class Place extends TimeBaseEntity {
     private float y;
 
     @Column(nullable = false)
-    private long like_count;
+    private long likeCount;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

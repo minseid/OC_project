@@ -62,9 +62,9 @@ public class MeetingController{
     }
 
     @PostMapping("/api/meeting/invite")
-    public ResponseEntity.BodyBuilder inviteMeeting(@RequestBody InviteRequest request) {
+    public ResponseEntity<Void> inviteMeeting(@RequestBody InviteRequest request) {
         meetingService.addParticipant(request.getMeetingId(), request.getFromId(), request.getToId());
-        return ResponseEntity.ok();
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/meeting/invite/ok/{id}")

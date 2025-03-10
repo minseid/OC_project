@@ -33,41 +33,75 @@ public class PlaceService {
 
     //같은 장소를 판단하는 알고리즘 추가해야됨
     public Link addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
-        //meetingId 유효성 확인 및 겹치는거 확인
+        //각종 id 유효성 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
-        PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name,address);
+        //카카오맵 api 이용해 해당 장소 정보 검색
+        PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
+        //좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
         List<Place> targetPlaces = placeRepository.findAllByXAndY(placeAddressDto.getX(), placeAddressDto.getY());
-        if(targetPlaces.isEmpty()) {
-            List<User> users = new ArrayList<>();
-            users.add(targetUser);
-            Place savedPlace = placeRepository.save(Place.builder()
-                    .meeting(targetMeeting)
-                    .user(users)
-                    .name(name)
-                    .address(address)
-                    .x(placeAddressDto.getX())
-                    .y(placeAddressDto.getY())
-                    .like_count(0)
-                    .placeStatus(PlaceStatus.NotPicked)
-                    .build());
-            if(naverLink != null) {
-                return linkRepository.save(Link.builder()
-                            .place(savedPlace)
-                            .naverLink(naverLink)
-                            .kakaoLink(placeAddressDto.getKakaoLink())
-                            .build());
-            } else {
-                return linkRepository.save(Link.builder()
-                        .place(savedPlace)
-                        .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
-                        .kakaoLink(placeAddressDto.getKakaoLink())
-                        .build());
-            }
+        if (targetPlaces.isEmpty()) {
+            //해당 좌표 기준으로 저장되어있는 장소 없음 새로 추가
+            return newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink);
         } else {
-            //여기서부터 하기
-            return null;
+            //해당 좌표 기준으로 저장되어 있는 장소 중 이름 겹치는 것으로만 필터
+            List<Place> places = targetPlaces.stream()
+                    .filter(place -> noBlankUpper(place.getName()).contains(noBlankUpper(name)) || noBlankUpper(name).contains(noBlankUpper(place.getName())))
+                    .toList();
+            if (places.isEmpty()) {
+                //해당 이름으로된 장소가 없으므로 새로 추가
+                return newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink);
+            } else {
+                //해당 장소가 있으므로 사용자만 추가
+                Place targetPlace = places.get(0);
+                List<User> users = targetPlace.getUser();
+                users.add(targetUser);
+                Place saved = placeRepository.save(Place.builder()
+                        .id(targetPlace.getId())
+                        .meeting(targetPlace.getMeeting())
+                        .user(users)
+                        .name(targetPlace.getName())
+                        .address(targetPlace.getAddress())
+                        .x(targetPlace.getX())
+                        .y(targetPlace.getY())
+                        .likeCount(targetPlace.getLikeCount())
+                        .placeStatus(targetPlace.getPlaceStatus())
+                        .build());
+                return findService.valid(linkRepository.findByPlace(saved),EntityType.Link);
+            }
         }
+    }
+
+    private Link newPlace(User targetUser, Meeting targetMeeting, String name, String address,PlaceAddressDto placeAddressDto, String naverLink ) {
+        List<User> users = new ArrayList<>();
+        users.add(targetUser);
+        Place savedPlace = placeRepository.save(Place.builder()
+                .meeting(targetMeeting)
+                .user(users)
+                .name(name)
+                .address(address)
+                .x(placeAddressDto.getX())
+                .y(placeAddressDto.getY())
+                .likeCount(0)
+                .placeStatus(PlaceStatus.NotPicked)
+                .build());
+        if (naverLink != null) {
+            return linkRepository.save(Link.builder()
+                    .place(savedPlace)
+                    .naverLink(naverLink)
+                    .kakaoLink(placeAddressDto.getKakaoLink())
+                    .build());
+        } else {
+            return linkRepository.save(Link.builder()
+                    .place(savedPlace)
+                    .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
+                    .kakaoLink(placeAddressDto.getKakaoLink())
+                    .build());
+        }
+    }
+
+    private String noBlankUpper(String target) {
+        return target.trim().toLowerCase();
     }
 
     public Place deletePlace(Long placeId) {
@@ -85,10 +119,11 @@ public class PlaceService {
                     .user(target.getUser())
                     .name(target.getName())
                     .address(target.getAddress())
-                    .like_count(target.getLike_count()+1)
-                    .placeStatus(target.getPlaceStatus())
+                    .likeCount(target.getLikeCount()+1)
+                    .placeStatus(target.getPlaceStatus()==PlaceStatus.Picked? PlaceStatus.NotPicked: PlaceStatus.Picked)
                     .build());
-            return picked;
+        List<Place> pickedPlaces = placeRepository.findAllByPlaceStatus(PlaceStatus.Picked);
+        return picked;
     }
 
     public Comment addComment(Long placeId, Long userId, String description) {

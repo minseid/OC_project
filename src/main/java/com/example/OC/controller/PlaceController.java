@@ -1,8 +1,10 @@
 package com.example.OC.controller;
 
 import com.example.OC.entity.Comment;
+import com.example.OC.entity.Link;
 import com.example.OC.entity.Place;
 import com.example.OC.network.request.*;
+import com.example.OC.network.response.AddPlaceResponse;
 import com.example.OC.network.response.GetCommentResponse;
 import com.example.OC.service.PlaceService;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +22,24 @@ public class PlaceController{
     private final PlaceService placeService;
 
     @PostMapping("/api/place")
-    public ResponseEntity<Place> addPlace(@RequestBody AddPlaceRequest request) {
-        //Place saved = placeService.addPlace(request.getMeetingId(), request.getUserid(), request.getName(), request.getAddress());
-        //return ResponseEntity.ok(saved);
-        return null;
+    public ResponseEntity<AddPlaceResponse> addPlace(@RequestBody AddPlaceRequest request) {
+        Link saved = placeService.addPlace(request.getMeetingId(), request.getUserid(), request.getName(), request.getAddress(), request.getNaverLink());
+        return ResponseEntity.ok(AddPlaceResponse.builder()
+                .id(saved.getPlace().getId())
+                .meetingId(saved.getPlace().getMeeting().getId())
+                .naverLink(saved.getNaverLink())
+                .kakaoLink(saved.getKakaoLink())
+                .name(saved.getPlace().getName())
+                .address(saved.getPlace().getAddress())
+                .likeCount(saved.getPlace().getLikeCount())
+                .placeStatus(saved.getPlace().getPlaceStatus())
+                .build());
     }
 
     @DeleteMapping("/api/place")
-    public ResponseEntity<Place> deletePlace(@RequestBody CommonPlaceRequest request) {
+    public ResponseEntity<Void> deletePlace(@RequestBody CommonPlaceRequest request) {
         Place target = placeService.deletePlace(request.getPlaceId());
-        return ResponseEntity.ok(target);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/place/pick")
