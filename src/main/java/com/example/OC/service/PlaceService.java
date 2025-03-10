@@ -2,31 +2,18 @@ package com.example.OC.service;
 
 import com.example.OC.constant.EntityType;
 import com.example.OC.constant.PlaceStatus;
-import com.example.OC.entity.Comment;
-import com.example.OC.entity.Meeting;
-import com.example.OC.entity.Place;
-import com.example.OC.entity.User;
+import com.example.OC.dto.PlaceAddressDto;
+import com.example.OC.entity.*;
 import com.example.OC.network.response.GetCommentResponse;
-import com.example.OC.network.response.KakaoMapApiResponse;
 import com.example.OC.repository.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.Api;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,52 +28,45 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final CommentRepository commentRepository;
     private final ApiService apiService;
+    private final LinkRepository linkRepository;
+    private final String naverMapLink = "nmap://search?query=";
 
     //같은 장소를 판단하는 알고리즘 추가해야됨
-    public Place addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
+    public Link addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
         //meetingId 유효성 확인 및 겹치는거 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
-        try {
-            Optional<Place> target = placeRepository.findByMeetingAndNameAndAddress(targetMeeting, name, address);
-            if(target.isPresent()) {
-                List<User> users = target.get().getUser();
-                if(users.contains(targetUser))
-                {
-                    throw new IllegalArgumentException("중복된 장소를 공유했습니다!");
-                }
-                users.add(targetUser);
-                return placeRepository.save(Place.builder()
-                        .id(target.get().getId())
-                        .name(name)
-                        .meeting(targetMeeting)
-                        .user(users)
-                        .name(name)
-                        .address(address)
-                        .like_count(target.get().getLike_count())
-                        .placeStatus(target.get().getPlaceStatus())
-                        .build());
-            } else {
-                List<User> newUser = new ArrayList<>();
-                newUser.add(targetUser);
-                return placeRepository.save(Place.builder()
-                        .name(name)
-                        .meeting(targetMeeting)
-                        .build());
-            }
-        } catch (IllegalStateException e) {
-
+        PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name,address);
+        List<Place> targetPlaces = placeRepository.findAllByXAndY(placeAddressDto.getX(), placeAddressDto.getY());
+        if(targetPlaces.isEmpty()) {
             List<User> users = new ArrayList<>();
             users.add(targetUser);
-            //여기에 링크생성하는 코드 넣어야됨
-            return placeRepository.save(Place.builder()
+            Place savedPlace = placeRepository.save(Place.builder()
                     .meeting(targetMeeting)
                     .user(users)
                     .name(name)
                     .address(address)
+                    .x(placeAddressDto.getX())
+                    .y(placeAddressDto.getY())
                     .like_count(0)
                     .placeStatus(PlaceStatus.NotPicked)
                     .build());
+            if(naverLink != null) {
+                return linkRepository.save(Link.builder()
+                            .place(savedPlace)
+                            .naverLink(naverLink)
+                            .kakaoLink(placeAddressDto.getKakaoLink())
+                            .build());
+            } else {
+                return linkRepository.save(Link.builder()
+                        .place(savedPlace)
+                        .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
+                        .kakaoLink(placeAddressDto.getKakaoLink())
+                        .build());
+            }
+        } else {
+            //여기서부터 하기
+            return null;
         }
     }
 

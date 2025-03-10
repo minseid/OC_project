@@ -35,6 +35,12 @@ public class Place extends TimeBaseEntity {
     private String address;
 
     @Column(nullable = false)
+    private float x;
+
+    @Column(nullable = false)
+    private float y;
+
+    @Column(nullable = false)
     private long like_count;
 
     @Column(nullable = false)
