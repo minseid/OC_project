@@ -1,17 +1,14 @@
 package com.example.OC.service;
 
 import com.example.OC.constant.EntityType;
+import com.example.OC.constant.MethodType;
 import com.example.OC.constant.SendType;
+import com.example.OC.entity.*;
+import com.example.OC.network.fcm.SendDeleteFriendDto;
+import com.example.OC.network.fcm.SendEditMeetingDto;
 import com.example.OC.network.fcm.SendNewMemberDto;
-import com.example.OC.entity.Meeting;
-import com.example.OC.entity.Participant;
-import com.example.OC.entity.User;
-import com.example.OC.entity.UserMeetingMapping;
 import com.example.OC.network.response.GetParticipantsResponse;
-import com.example.OC.repository.MeetingRepository;
-import com.example.OC.repository.ParticipantRepository;
-import com.example.OC.repository.UserMeetingMappingRepository;
-import com.example.OC.repository.UserRepository;
+import com.example.OC.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +31,11 @@ public class MeetingService {
     private final UserMeetingMappingRepository userMeetingMappingRepository;
     private final UserRepository userRepository;
     private final FCMService fcmService;
+    private final PlaceRepository placeRepository;
+    private final CommentRepository commentRepository;
+    private final ScheduleRepository scheduleRepository;
+    private final FriendRepository friendRepository;
+
     private final String linkForInvite = "https://www.audi.com/";
 
     //모임 초대용 링크 만드는 메서드
@@ -82,7 +84,7 @@ public class MeetingService {
                             .status(false)
                             .build());
                     try {
-                        fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + target.getTitle() + "모임에 초대하셨어요!", null, SendType.Notification);
+                        fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + target.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
                     } catch (IOException e) {
                         throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
                     }
@@ -102,29 +104,86 @@ public class MeetingService {
     }
 
     //모임 수정하는 메서드
-    public Meeting editMeeting(Long id, String title, String description, MultipartFile image) {
+    public Meeting editMeeting(Long id, String title, String description, MultipartFile image, boolean finished) {
 
+        if(title==null && description==null && image.isEmpty()) {
+            throw new IllegalArgumentException("수정사항이 없습니다!");
+        }
         //먼저 해당 id로 모임이 존재하는지 확인
         Meeting targetmeeting = findService.valid(meetingRepository.findById(id), EntityType.Meeting);
         Meeting target = Meeting.builder()
                 .id(id)
-                .title(title)
-                .description(description)
+                .title(title == null? targetmeeting.getTitle():title)
+                .description(description==null?targetmeeting.getDescription():description)
                 .link(targetmeeting.getLink())
                 //이미지를 수정한다면 기존에 있는것은 삭제 후 새로 저장, 이미지 수정이 없다면 그대로
-                .image(image.isEmpty()? targetmeeting.getImage(): awsS3Service.saveMeetingImage(image, targetmeeting.getId()))
+                .image(image.isEmpty()? targetmeeting.getImage(): awsS3Service.editMeetingImage(image, id, targetmeeting.getLink()))
                 .finished(targetmeeting.isFinished())
                 .build();
-        return meetingRepository.save(target);
+        meetingRepository.save(target);
+        /*
+        모임수정하는것도 실시간으로 정보 보내야 된다면 주석 해제하기
+        userMeetingMappingRepository.findAllByMeeting(target).forEach(userMeetingMapping -> {
+            try {
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendEditMeetingDto.builder()
+                        .meetingId(target.getId())
+                        .title(target.getTitle())
+                        .description(target.getDescription())
+                        .image(target.getImage())
+                        .finished(target.isFinished())
+                        .build(),
+                       MethodType.MeetingEdit,SendType.Data);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("실시간 데이터전송 실패! : " + e.getMessage());
+            }
+        });
+         */
+        return target;
     }
 
     //모임 탈퇴 메서드
     public void quitMeeting(Long userId, Long meetingId) {
 
+        //모임 구성원삭제
         userMeetingMappingRepository.delete(findService.valid(userMeetingMappingRepository.findByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting)),EntityType.UserMeetingMapping));
+        //모임 id 유효성검사
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        //친구목록에서 모임삭제
+        friendRepository.findAllByU1OrU2(userId,userId).forEach(friend -> {
+            List<Long> meets = friend.getMeets();
+            meets.removeIf(id -> id==meetingId);
+            if(meets.isEmpty()) {
+                //친구목록에서 겹친 모임이 해당모임만 있다면 친구도 삭제
+                try {
+                    fcmService.sendMessageToken(friend.getU1()==userId?friend.getU2():userId,null,null, SendDeleteFriendDto.builder().userId(userId).build(),MethodType.FriendDelete,SendType.Data);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("실시간 데이터 전송 실패! : "+e.getMessage());
+                }
+                friendRepository.delete(friend);
+            } else {
+                //다른모임도 있다면 해당 모임만 삭제
+                friendRepository.save(Friend.builder()
+                                .id(friend.getId())
+                                .u1(friend.getU1())
+                                .u2(friend.getU2())
+                                .u1Bookmark(friend.isU1Bookmark())
+                                .u2Bookmark(friend.isU2Bookmark())
+                                .meets(meets)
+                                .build());
+            }
+        });
         //모임구성원이 없다면 모임 삭제
+        //모임삭제전 해당 모임과 연관된 모든 데이터 삭제
         if(userMeetingMappingRepository.findAllByMeeting(targetMeeting).isEmpty()) {
+            //초대삭제
+            participantRepository.findAllByMeeting(targetMeeting).forEach(participantRepository::delete);
+            //장소삭제전에 장소와 관련된 모든 데이터 삭제
+            placeRepository.findAllByMeeting(targetMeeting).forEach(place -> {
+                //장소와 관련된 코멘트 삭제
+                commentRepository.findAllByPlace(place).forEach(commentRepository::delete);
+            });
+            //일정삭제
+            scheduleRepository.delete(findService.valid(scheduleRepository.findByMeeting(targetMeeting),EntityType.Schedule));
             meetingRepository.delete(targetMeeting);
         }
     }
@@ -185,7 +244,7 @@ public class MeetingService {
                 .build());
         //fcm으로 알림전송
         try {
-            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null, SendType.Notification);
+            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
         } catch (IOException e) {
             throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
         }
@@ -214,7 +273,7 @@ public class MeetingService {
                        .userId(acceptUser.getId())
                        .userName(acceptUser.getName())
                        .userImage(acceptUser.getProfileImage())
-                       .build(), SendType.Data);
+                       .build(), MethodType.MeetingAccept, SendType.Data);
            } catch (IOException e) {
                throw new IllegalArgumentException("실시간 데이터전송 실패! : " + e.getMessage());
            }

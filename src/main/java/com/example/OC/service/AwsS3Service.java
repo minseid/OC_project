@@ -46,6 +46,20 @@ public class AwsS3Service {
         return upload(multipartFile, inquiryImgDir, inquiryId);
     }
 
+    public String editMeetingImage(MultipartFile multipartFile, Long meetingId, String link) {
+        delete(link,ImageType.Meeting);
+        return upload(multipartFile, meetingImgDir, meetingId);
+    }
+
+    public String editfrofileImage(MultipartFile multipartFile, Long userId, String link) {
+        delete(link,ImageType.Profile);
+        return upload(multipartFile, inquiryImgDir, userId);
+    }
+
+    public String editInquiryImage(MultipartFile multipartFile, Long inquiryId, String link) {
+        delete(link,ImageType.Inquiry);
+        return upload(multipartFile, inquiryImgDir, inquiryId);
+    }
 
     private String upload(MultipartFile uploadFile, String dir, Long id) {
         File file = new File(uploadFile.getOriginalFilename());
@@ -70,7 +84,7 @@ public class AwsS3Service {
         String targetLink;
         String[] splitedLink;
         switch(type){
-            case User:
+            case Profile:
                 targetLink = link.substring(link.indexOf(profileImgDir));
                 splitedLink = targetLink.split("/");
                 amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, splitedLink[0]+"/"+splitedLink[1]+"/"+splitedLink[2].substring(0,36) + URLDecoder.decode(splitedLink[2].substring(36))));

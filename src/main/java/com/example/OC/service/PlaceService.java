@@ -1,6 +1,7 @@
 package com.example.OC.service;
 
 import com.example.OC.constant.EntityType;
+import com.example.OC.constant.MethodType;
 import com.example.OC.constant.PlaceStatus;
 import com.example.OC.constant.SendType;
 import com.example.OC.dto.PlaceAddressDto;
@@ -36,17 +37,17 @@ public class PlaceService {
     private final UserMeetingMappingRepository userMeetingMappingRepository;
     private final String naverMapLink = "nmap://search?query=";
 
-    //같은 장소를 판단하는 알고리즘 추가해야됨
+    //장소를 추가하는 메서드
     public Link addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
         //각종 id 유효성 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         //카카오맵 api 이용해 해당 장소 정보 검색
         PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
-        //좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
-        List<Place> targetPlaces = placeRepository.findAllByXAndY(placeAddressDto.getX(), placeAddressDto.getY());
+        //해당 모임과 좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
+        List<Place> targetPlaces = placeRepository.findAllByXAndYAndMeeting(placeAddressDto.getX(), placeAddressDto.getY(),targetMeeting);
         if (targetPlaces.isEmpty()) {
-            //해당 좌표 기준으로 저장되어있는 장소 없음 새로 추가
+            //해당 좌표 기준으로 저장되어있는 장소 없으면 새로 추가
             return newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink);
         } else {
             //해당 좌표 기준으로 저장되어 있는 장소 중 이름 겹치는 것으로만 필터
@@ -78,6 +79,7 @@ public class PlaceService {
     }
 
     private Link newPlace(User targetUser, Meeting targetMeeting, String name, String address,PlaceAddressDto placeAddressDto, String naverLink ) {
+        //새로운 리스트 만들어서 유저추가후 장소저장
         List<User> users = new ArrayList<>();
         users.add(targetUser);
         Place savedPlace = placeRepository.save(Place.builder()
@@ -90,7 +92,7 @@ public class PlaceService {
                 .likeCount(0)
                 .placeStatus(PlaceStatus.NotPicked)
                 .build());
-        //모임구성원들에게 장소정보 전송
+        //모임구성원들에게 새로운 장소추가정보 전송
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
             try {
                 fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendNewPlaceDto.builder()
@@ -103,55 +105,69 @@ public class PlaceService {
                                 .naverLink(naverLink ==null? naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi":naverLink)
                                 .kakaoLink(placeAddressDto.getKakaoLink())
                                 .build(),
-                        SendType.Data);
+                        MethodType.PlaceAdd,SendType.Data);
             } catch (IOException e) {
                 throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
             }
         });
-        if (naverLink != null) {
-            //네이버지도로 공유했을때
-            return linkRepository.save(Link.builder()
-                    .place(savedPlace)
-                    .naverLink(naverLink)
-                    .kakaoLink(placeAddressDto.getKakaoLink())
-                    .build());
-        } else {
-            //카카오맵으로 공유했을때
-            return linkRepository.save(Link.builder()
-                    .place(savedPlace)
-                    .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
-                    .kakaoLink(placeAddressDto.getKakaoLink())
-                    .build());
-        }
+        //어떤 지도앱으로 공유했는지 확인후 링크정보 저장
+        return linkRepository.save(Link.builder()
+                .place(savedPlace)
+                .naverLink(naverLink==null?naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi":naverLink)
+                .kakaoLink(placeAddressDto.getKakaoLink())
+                .build());
     }
 
     private String noBlankUpper(String target) {
         return target.trim().toLowerCase();
     }
 
+    //장소삭제 메서드
     public Place deletePlace(Long placeId) {
+
+        //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
+        //해당 장소에 저장되어있는 코멘트 삭제
+        commentRepository.findAllByPlace(target).forEach(commentRepository::delete);
         placeRepository.delete(target);
+        //모임 구성원들에게 장소삭제정보 전송
         userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).forEach(userMeetingMapping -> {
-           fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null,);
+            try {
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null,target,MethodType.PlaceDelete,SendType.Data);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("실시간 데이터 전송 실패 : " + e.getMessage());
+            }
         });
         return target;
     }
 
-    public Place pickPlace(Long placeId, Long meetingId) {
+    //장소pick 메서드
+    public Place pickPlace(Long placeId) {
 
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
-        Place picked = placeRepository.save(Place.builder()
+        return placeRepository.save(Place.builder()
                     .id(target.getId())
-                    .meeting(findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting))
+                    .meeting(target.getMeeting())
                     .user(target.getUser())
                     .name(target.getName())
                     .address(target.getAddress())
-                    .likeCount(target.getLikeCount()+1)
+                    .likeCount(target.getLikeCount())
                     .placeStatus(target.getPlaceStatus()==PlaceStatus.Picked? PlaceStatus.NotPicked: PlaceStatus.Picked)
                     .build());
-        List<Place> pickedPlaces = placeRepository.findAllByPlaceStatus(PlaceStatus.Picked);
-        return picked;
+    }
+
+    //장소 좋아요 메서드
+    public Place likePlace(Long placeId, boolean like) {
+        Place target = findService.valid(placeRepository.findById(placeId),EntityType.Place);
+        return placeRepository.save(Place.builder()
+                .id(target.getId())
+                .meeting(target.getMeeting())
+                .user(target.getUser())
+                .name(target.getName())
+                .address(target.getAddress())
+                .likeCount(like?(target.getLikeCount()>userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).size()?0:1):(target.getLikeCount()>0?-1:0))
+                .placeStatus(target.getPlaceStatus())
+                .build());
     }
 
     //코멘트를 추가하는 메서드

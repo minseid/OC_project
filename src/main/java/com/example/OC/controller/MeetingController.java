@@ -39,7 +39,7 @@ public class MeetingController{
 
     @PutMapping("/api/meeting")
     public ResponseEntity<EditMeetingResponse> editMeeting(@RequestPart("data") EditMeetingRequest request, @RequestPart("image") MultipartFile image) {
-        Meeting updated = meetingService.editMeeting(request.getId(),request.getTitle(),request.getDescription(),image);
+        Meeting updated = meetingService.editMeeting(request.getId(),request.getTitle(),request.getDescription(),image,request.isFinished());
         return ResponseEntity.ok(modelMapper.map(updated, EditMeetingResponse.class));
     }
 
@@ -71,6 +71,4 @@ public class MeetingController{
     public ResponseEntity<Meeting> inviteOk(@RequestBody Long id) {
         return ResponseEntity.ok(meetingService.inviteOk(id));
     }
-
-
 }

@@ -1,6 +1,7 @@
 package com.example.OC.service;
 
 import com.example.OC.constant.EntityType;
+import com.example.OC.constant.MethodType;
 import com.example.OC.constant.SendType;
 import com.example.OC.entity.Meeting;
 import com.example.OC.network.fcm.FCMMessageDto;
@@ -45,12 +46,12 @@ public class FCMService {
     private final FindService findService;
     private final UserRepository userRepository;
 
-    public void sendMessageToken(Long userId, String title, String body, Object dataObject, SendType sendType) throws IOException {
+    public void sendMessageToken(Long userId, String title, String body, Object dataObject, MethodType methodType, SendType sendType) throws IOException {
         String targetToken = findService.valid(userRepository.findById(userId), EntityType.User).getFcmKey();
         String message = switch (sendType) {
-            case Data -> makeData(targetToken, dataObject);
+            case Data -> makeData(targetToken, dataObject, methodType);
             case Notification -> makeNotification(targetToken, title, body);
-            default -> makeNotiAndData(targetToken, title, body, dataObject);
+            default -> makeNotiAndData(targetToken, title, body, dataObject,methodType);
         };
 
         OkHttpClient client = new OkHttpClient();
@@ -84,14 +85,19 @@ public class FCMService {
         return objectMapper.writeValueAsString(fcmMessageDto);
     }
 
-    public String makeData(String targetToken, Object dataObject) throws JsonProcessingException {
+    public String makeData(String targetToken, Object dataObject, MethodType methodType) throws JsonProcessingException {
 
-        Map<String, String> dataMap = objectMapper.convertValue(dataObject,Map.class);
+        Map<String, Object> dataMap = objectMapper.convertValue(dataObject,Map.class);
+
+        Map<String, Object> wrappedMap = new HashMap<>();
+        wrappedMap.put("code", methodType.getCode());
+        wrappedMap.put("data", dataMap);
+
 
         FCMMessageDto fcmMessageDto = FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
                         .token(targetToken)
-                        .data(dataMap)
+                        .data(wrappedMap)
                         .build())
                 .validate_only(false)
                 .build();
@@ -99,9 +105,13 @@ public class FCMService {
         return objectMapper.writeValueAsString(fcmMessageDto);
     }
 
-    public String makeNotiAndData(String targetToken, String title, String body, Object dataObject) throws JsonProcessingException {
+    public String makeNotiAndData(String targetToken, String title, String body, Object dataObject, MethodType methodType) throws JsonProcessingException {
 
-        Map<String, String> dataMap = objectMapper.convertValue(dataObject,Map.class);
+        Map<String, Object> dataMap = objectMapper.convertValue(dataObject,Map.class);
+
+        Map<String, Object> wrappedMap = new HashMap<>();
+        wrappedMap.put("code", methodType.getCode());
+        wrappedMap.put("data", dataMap);
 
         FCMMessageDto fcmMessageDto= FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
@@ -110,7 +120,7 @@ public class FCMService {
                                 .title(title)
                                 .body(body)
                                 .build())
-                        .data(dataMap)
+                        .data(wrappedMap)
                         .build())
                 .validate_only(false)
                 .build();
