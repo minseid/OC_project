@@ -1,8 +1,8 @@
 package com.example.OC.service;
 
 import com.example.OC.constant.EntityType;
-import com.example.OC.constant.ImageType;
 import com.example.OC.constant.SendType;
+import com.example.OC.network.fcm.SendNewMemberDto;
 import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Participant;
 import com.example.OC.entity.User;
@@ -124,7 +124,7 @@ public class MeetingService {
         userMeetingMappingRepository.delete(findService.valid(userMeetingMappingRepository.findByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting)),EntityType.UserMeetingMapping));
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         //모임구성원이 없다면 모임 삭제
-        if(userMeetingMappingRepository.findByMeeting(targetMeeting).isEmpty()) {
+        if(userMeetingMappingRepository.findAllByMeeting(targetMeeting).isEmpty()) {
             meetingRepository.delete(targetMeeting);
         }
     }
@@ -206,6 +206,19 @@ public class MeetingService {
                 .toId(target.getToId())
                 .status(true)
                 .build());
+        //해당 모임 구성원에게 추가된 구성원정보 전송
+        userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
+           try {
+               fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendNewMemberDto.builder()
+                       .meetingId(targetMeeting.getId())
+                       .userId(acceptUser.getId())
+                       .userName(acceptUser.getName())
+                       .userImage(acceptUser.getProfileImage())
+                       .build(), SendType.Data);
+           } catch (IOException e) {
+               throw new IllegalArgumentException("실시간 데이터전송 실패! : " + e.getMessage());
+           }
+        });
         //해당 모임에 구성원 추가
         userMeetingMappingRepository.save(UserMeetingMapping.builder()
                 .user(acceptUser)

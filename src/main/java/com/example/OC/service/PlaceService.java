@@ -2,8 +2,10 @@ package com.example.OC.service;
 
 import com.example.OC.constant.EntityType;
 import com.example.OC.constant.PlaceStatus;
+import com.example.OC.constant.SendType;
 import com.example.OC.dto.PlaceAddressDto;
 import com.example.OC.entity.*;
+import com.example.OC.network.fcm.SendNewPlaceDto;
 import com.example.OC.network.response.GetCommentResponse;
 import com.example.OC.repository.*;
 import lombok.*;
@@ -11,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,8 @@ public class PlaceService {
     private final CommentRepository commentRepository;
     private final ApiService apiService;
     private final LinkRepository linkRepository;
+    private final FCMService fcmService;
+    private final UserMeetingMappingRepository userMeetingMappingRepository;
     private final String naverMapLink = "nmap://search?query=";
 
     //같은 장소를 판단하는 알고리즘 추가해야됨
@@ -85,13 +90,33 @@ public class PlaceService {
                 .likeCount(0)
                 .placeStatus(PlaceStatus.NotPicked)
                 .build());
+        //모임구성원들에게 장소정보 전송
+        userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
+            try {
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendNewPlaceDto.builder()
+                                .meetingId(targetMeeting.getId())
+                                .placeId(savedPlace.getId())
+                                .placeName(savedPlace.getName())
+                                .address(savedPlace.getAddress())
+                                .likeCount(savedPlace.getLikeCount())
+                                .placeStatus(savedPlace.getPlaceStatus())
+                                .naverLink(naverLink ==null? naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi":naverLink)
+                                .kakaoLink(placeAddressDto.getKakaoLink())
+                                .build(),
+                        SendType.Data);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+            }
+        });
         if (naverLink != null) {
+            //네이버지도로 공유했을때
             return linkRepository.save(Link.builder()
                     .place(savedPlace)
                     .naverLink(naverLink)
                     .kakaoLink(placeAddressDto.getKakaoLink())
                     .build());
         } else {
+            //카카오맵으로 공유했을때
             return linkRepository.save(Link.builder()
                     .place(savedPlace)
                     .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
@@ -107,6 +132,9 @@ public class PlaceService {
     public Place deletePlace(Long placeId) {
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
         placeRepository.delete(target);
+        userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).forEach(userMeetingMapping -> {
+           fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null,);
+        });
         return target;
     }
 
@@ -126,18 +154,27 @@ public class PlaceService {
         return picked;
     }
 
+    //코멘트를 추가하는 메서드
     public Comment addComment(Long placeId, Long userId, String description) {
 
+        //각종 id 유효성 검사
         Place targetPlace = findService.valid(placeRepository.findById(placeId), EntityType.Place);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
-        Comment saved = Comment.builder()
-                .place(targetPlace)
-                .user(targetUser)
-                .description(description)
-                .build();
-        return commentRepository.save(saved);
+        //해장 장소를 공유한 사용자가 맞는지 확인
+        if(targetPlace.getUser().contains(targetUser)) {
+            //코멘트 추가
+            Comment saved = Comment.builder()
+                    .place(targetPlace)
+                    .user(targetUser)
+                    .description(description)
+                    .build();
+            return commentRepository.save(saved);
+        } else {
+            throw new IllegalArgumentException("해당 장소를 공유한 사용자가 아닙니다!");
+        }
     }
 
+    //코멘트 수정
     public Comment editComment(Long commentId, Long userId, String description) {
 
         Comment target = findService.valid(commentRepository.findById(commentId), EntityType.Comment);

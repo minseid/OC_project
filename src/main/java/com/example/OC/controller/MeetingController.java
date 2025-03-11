@@ -67,8 +67,8 @@ public class MeetingController{
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/api/meeting/invite/ok/{id}")
-    public ResponseEntity<Meeting> inviteOk(@PathVariable Long id) {
+    @PostMapping("/api/meeting/invite/ok")
+    public ResponseEntity<Meeting> inviteOk(@RequestBody Long id) {
         return ResponseEntity.ok(meetingService.inviteOk(id));
     }
 
