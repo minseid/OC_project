@@ -6,8 +6,8 @@ import com.example.OC.constant.PlaceStatus;
 import com.example.OC.constant.SendType;
 import com.example.OC.dto.PlaceAddressDto;
 import com.example.OC.entity.*;
-import com.example.OC.network.fcm.SendNewPlaceDto;
-import com.example.OC.network.response.GetCommentResponse;
+import com.example.OC.network.fcm.*;
+import com.example.OC.network.response.*;
 import com.example.OC.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class PlaceService {
     private final String naverMapLink = "nmap://search?query=";
 
     //장소를 추가하는 메서드
-    public Link addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
+    public AddPlaceResponse addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
         //각종 id 유효성 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
@@ -48,7 +48,7 @@ public class PlaceService {
         List<Place> targetPlaces = placeRepository.findAllByXAndYAndMeeting(placeAddressDto.getX(), placeAddressDto.getY(),targetMeeting);
         if (targetPlaces.isEmpty()) {
             //해당 좌표 기준으로 저장되어있는 장소 없으면 새로 추가
-            return newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink);
+            return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink));
         } else {
             //해당 좌표 기준으로 저장되어 있는 장소 중 이름 겹치는 것으로만 필터
             List<Place> places = targetPlaces.stream()
@@ -56,7 +56,7 @@ public class PlaceService {
                     .toList();
             if (places.isEmpty()) {
                 //해당 이름으로된 장소가 없으므로 새로 추가
-                return newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink);
+                return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink));
             } else {
                 //해당 장소가 있으므로 사용자만 추가
                 Place targetPlace = places.get(0);
@@ -73,9 +73,22 @@ public class PlaceService {
                         .likeCount(targetPlace.getLikeCount())
                         .placeStatus(targetPlace.getPlaceStatus())
                         .build());
-                return findService.valid(linkRepository.findByPlace(saved),EntityType.Link);
+                return addPlaceResponse(findService.valid(linkRepository.findByPlace(saved),EntityType.Link));
             }
         }
+    }
+
+    private AddPlaceResponse addPlaceResponse(Link link) {
+        return AddPlaceResponse.builder()
+                .id(link.getPlace().getId())
+                .meetingId(link.getPlace().getMeeting().getId())
+                .naverLink(link.getNaverLink())
+                .kakaoLink(link.getKakaoLink())
+                .name(link.getPlace().getName())
+                .address(link.getPlace().getAddress())
+                .likeCount(link.getPlace().getLikeCount())
+                .placeStatus(link.getPlace().getPlaceStatus())
+                .build();
     }
 
     private Link newPlace(User targetUser, Meeting targetMeeting, String name, String address,PlaceAddressDto placeAddressDto, String naverLink ) {
@@ -142,10 +155,12 @@ public class PlaceService {
     }
 
     //장소pick 메서드
-    public Place pickPlace(Long placeId) {
+    public PickPlaceResponse pickPlace(Long placeId) {
 
+        //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
-        return placeRepository.save(Place.builder()
+        //좋아요수가 모임 멤버수 내에 있는 범위 내에서 +1, -1
+        Place saved = placeRepository.save(Place.builder()
                     .id(target.getId())
                     .meeting(target.getMeeting())
                     .user(target.getUser())
@@ -154,12 +169,32 @@ public class PlaceService {
                     .likeCount(target.getLikeCount())
                     .placeStatus(target.getPlaceStatus()==PlaceStatus.Picked? PlaceStatus.NotPicked: PlaceStatus.Picked)
                     .build());
+        //모임구성원들에게 변경내용 전송
+        userMeetingMappingRepository.findAllByMeeting(saved.getMeeting()).forEach(userMeetingMapping -> {
+            try {
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendPickPlaceDto.builder()
+                                .placeId(saved.getId())
+                                .placeStatus(saved.getPlaceStatus())
+                                .build(),
+                        MethodType.PlacePick,SendType.Data);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+            }
+        });
+        return PickPlaceResponse.builder()
+                .placeId(saved.getId())
+                .likeCount(saved.getLikeCount())
+                .placeStatus(saved.getPlaceStatus())
+                .build();
     }
 
     //장소 좋아요 메서드
-    public Place likePlace(Long placeId, boolean like) {
+    public PickPlaceResponse likePlace(Long placeId, boolean like) {
+
+        //id 유효성 검증
         Place target = findService.valid(placeRepository.findById(placeId),EntityType.Place);
-        return placeRepository.save(Place.builder()
+        //picked 토글
+        Place saved = placeRepository.save(Place.builder()
                 .id(target.getId())
                 .meeting(target.getMeeting())
                 .user(target.getUser())
@@ -168,10 +203,27 @@ public class PlaceService {
                 .likeCount(like?(target.getLikeCount()>userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).size()?0:1):(target.getLikeCount()>0?-1:0))
                 .placeStatus(target.getPlaceStatus())
                 .build());
+        //모임구성원들에게 변경내용 전송
+        userMeetingMappingRepository.findAllByMeeting(saved.getMeeting()).forEach(userMeetingMapping -> {
+            try {
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendLikePlaceDto.builder()
+                        .placeId(saved.getId())
+                        .likeCount(saved.getLikeCount())
+                        .build(),
+                        MethodType.PlaceLike,SendType.Data);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+            }
+        });
+        return PickPlaceResponse.builder()
+                .placeId(saved.getId())
+                .likeCount(saved.getLikeCount())
+                .placeStatus(saved.getPlaceStatus())
+                .build();
     }
 
     //코멘트를 추가하는 메서드
-    public Comment addComment(Long placeId, Long userId, String description) {
+    public AddCommentResponse addComment(Long placeId, Long userId, String description) {
 
         //각종 id 유효성 검사
         Place targetPlace = findService.valid(placeRepository.findById(placeId), EntityType.Place);
@@ -179,43 +231,94 @@ public class PlaceService {
         //해장 장소를 공유한 사용자가 맞는지 확인
         if(targetPlace.getUser().contains(targetUser)) {
             //코멘트 추가
-            Comment saved = Comment.builder()
+            Comment saved = commentRepository.save(Comment.builder()
                     .place(targetPlace)
                     .user(targetUser)
                     .description(description)
+                    .build());
+            //모임구성원들에게 전송
+            userMeetingMappingRepository.findAllByMeeting(targetPlace.getMeeting()).forEach(userMeetingMapping -> {
+                try {
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendAddCommentDto.builder()
+                            .placeId(placeId)
+                            .commentId(saved.getId())
+                            .userId(userId)
+                            .description(description)
+                            .build(),
+                            MethodType.CommentAdd,SendType.Data);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("실시간 데이터 전송 실패! : "+ e.getMessage());
+                }
+            });
+            return AddCommentResponse.builder()
+                    .placeId(placeId)
+                    .commentId(saved.getId())
+                    .userId(userId)
+                    .description(description)
                     .build();
-            return commentRepository.save(saved);
         } else {
             throw new IllegalArgumentException("해당 장소를 공유한 사용자가 아닙니다!");
         }
     }
 
     //코멘트 수정
-    public Comment editComment(Long commentId, Long userId, String description) {
+    public EditCommentResponse editComment(Long commentId, Long userId, String description) {
 
+        //id 유효성 확인
         Comment target = findService.valid(commentRepository.findById(commentId), EntityType.Comment);
+        //해당코멘트를 단 유저인지 확인
         if(target.getUser().getId().equals(userId)) {
-            return commentRepository.save(Comment.builder()
-                            .id(commentId)
-                            .place(target.getPlace())
-                            .user(target.getUser())
-                            .description(description)
-                            .build());
+            Comment saved = commentRepository.save(Comment.builder()
+                    .id(commentId)
+                    .place(target.getPlace())
+                    .user(target.getUser())
+                    .description(description)
+                    .build());
+            //모임구성원에게 데이터 전송
+            userMeetingMappingRepository.findAllByMeeting(saved.getPlace().getMeeting()).forEach(userMeetingMapping -> {
+                try {
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendEditCommentDto.builder()
+                            .commentId(saved.getId())
+                            .description(saved.getDescription())
+                            .build(),
+                            MethodType.CommentEdit,SendType.Data);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("실시간 데이터 전송실패! : " + e.getMessage());
+                }
+            });
+            return EditCommentResponse.builder()
+                    .commentId(saved.getId())
+                    .description(saved.getDescription())
+                    .build();
         } else {
             throw new IllegalArgumentException("이 코멘트를 작성한 유저가 아닙니다!");
         }
     }
 
-    public Comment deleteComment (Long commentId,Long userId) {
+    //코멘트 삭제 메서드
+    public void deleteComment (Long commentId, Long userId) {
+
+        //id 유효성 검사
         Comment target = findService.valid(commentRepository.findById(commentId), EntityType.Comment);
         if(target.getUser().getId().equals(userId)) {
             commentRepository.delete(target);
-            return target;
+            //모임 구성원에게 데이터 전송
+            userMeetingMappingRepository.findAllByMeeting(target.getPlace().getMeeting()).forEach(userMeetingMapping -> {
+                try {
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendDeleteCommentDto.builder()
+                            .commentId(target.getId())
+                            .build(),
+                            MethodType.CommentDelete,SendType.Data);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("실시간 데이터 전송실패! : " + e.getMessage());
+                }
+            });
         } else {
             throw new IllegalArgumentException("이 코멘트를 작성한 유저가 아닙니다!");
         }
     }
 
+    //코멘트 조회 메서드
     public List<GetCommentResponse> getComment(Long placeId) {
         List<Comment> target = commentRepository.findAllByPlace(findService.valid(placeRepository.findById(placeId), EntityType.Comment));
         return target.stream().map(GetCommentResponse::toDto).collect(Collectors.toList());

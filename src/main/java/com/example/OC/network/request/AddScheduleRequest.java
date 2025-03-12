@@ -1,5 +1,6 @@
 package com.example.OC.network.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -22,6 +23,7 @@ public class AddScheduleRequest {
     private LocalDate date;
 
     @NotNull(message = "시각을 입력해주세요")
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime time;
 
 }
