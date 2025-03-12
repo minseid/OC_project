@@ -1,5 +1,6 @@
 package com.example.OC.security.config;
 
+import com.example.OC.constant.UserRole;
 import com.example.OC.security.jwt.JwtFilter;
 import com.example.OC.security.jwt.LoginFilter;
 import com.example.OC.security.oauth2.KakaoOauthService;
@@ -40,6 +41,7 @@ public class SecurityConfig {
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login/**", "/oauth2/**").permitAll() // 로그인 관련 URL 허용
+                        .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.getKey())
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 )
 

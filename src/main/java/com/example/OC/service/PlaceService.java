@@ -48,7 +48,7 @@ public class PlaceService {
         List<Place> targetPlaces = placeRepository.findAllByXAndYAndMeeting(placeAddressDto.getX(), placeAddressDto.getY(),targetMeeting);
         if (targetPlaces.isEmpty()) {
             //해당 좌표 기준으로 저장되어있는 장소 없으면 새로 추가
-            return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink));
+            return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink),false);
         } else {
             //해당 좌표 기준으로 저장되어 있는 장소 중 이름 겹치는 것으로만 필터
             List<Place> places = targetPlaces.stream()
@@ -56,7 +56,7 @@ public class PlaceService {
                     .toList();
             if (places.isEmpty()) {
                 //해당 이름으로된 장소가 없으므로 새로 추가
-                return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink));
+                return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink),false);
             } else {
                 //해당 장소가 있으므로 사용자만 추가
                 Place targetPlace = places.get(0);
@@ -73,12 +73,12 @@ public class PlaceService {
                         .likeCount(targetPlace.getLikeCount())
                         .placeStatus(targetPlace.getPlaceStatus())
                         .build());
-                return addPlaceResponse(findService.valid(linkRepository.findByPlace(saved),EntityType.Link));
+                return addPlaceResponse(findService.valid(linkRepository.findByPlace(saved),EntityType.Link),true);
             }
         }
     }
 
-    private AddPlaceResponse addPlaceResponse(Link link) {
+    private AddPlaceResponse addPlaceResponse(Link link, boolean together) {
         return AddPlaceResponse.builder()
                 .id(link.getPlace().getId())
                 .meetingId(link.getPlace().getMeeting().getId())
@@ -88,6 +88,7 @@ public class PlaceService {
                 .address(link.getPlace().getAddress())
                 .likeCount(link.getPlace().getLikeCount())
                 .placeStatus(link.getPlace().getPlaceStatus())
+                .together(together)
                 .build();
     }
 

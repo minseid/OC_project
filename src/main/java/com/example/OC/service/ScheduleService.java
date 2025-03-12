@@ -71,22 +71,25 @@ public class ScheduleService {
     //일정수정 메서드
     public EditScheduleResponse editSchedule(Long id, LocalDate date, LocalTime time) {
 
+        if(date == null && time == null) {
+            throw new IllegalArgumentException("일정 수정내용이 없습니다!");
+        }
         //id 유효성 검증
         Schedule target = findService.valid(scheduleRepository.findByMeeting(findService.valid(meetingRepository.findById(id),EntityType.Meeting)), EntityType.Schedule);
         Schedule saved = scheduleRepository.save(Schedule.builder()
                 .id(target.getId())
                 .meeting(target.getMeeting())
-                .date(date)
-                .time(time)
+                .date(date == null ? target.getDate() : date)
+                .time(time == null ? target.getTime() : time)
                 .build());
         //모임구성원에게 데이터 전송
         userMeetingMappingRepository.findAllByMeeting(saved.getMeeting()).forEach(userMeetingMapping -> {
             try {
                 fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendEditScheduleDto.builder()
-                        .meetingId(saved.getMeeting().getId())
-                        .date(saved.getDate())
-                        .time(saved.getTime())
-                        .build(),
+                                .meetingId(saved.getMeeting().getId())
+                                .date(saved.getDate())
+                                .time(saved.getTime())
+                                .build(),
                         MethodType.ScheduleEdit,SendType.Data);
             } catch (IOException e) {
                 throw new IllegalArgumentException("실시간 데이터 전송실패! : " + e.getMessage());

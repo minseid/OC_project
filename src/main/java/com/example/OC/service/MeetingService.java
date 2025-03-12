@@ -11,6 +11,7 @@ import com.example.OC.network.response.GetParticipantsResponse;
 import com.example.OC.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.constraintvalidators.bv.time.future.FutureValidatorForReadableInstant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,7 @@ public class MeetingService {
     private final FriendRepository friendRepository;
 
     private final String linkForInvite = "https://www.audi.com/";
+    private final FutureValidatorForReadableInstant futureValidatorForReadableInstant;
 
     //모임 초대용 링크 만드는 메서드
     private String makeLink(){
@@ -89,7 +91,7 @@ public class MeetingService {
                         throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
                     }
                 } else {
-                    throw new IllegalArgumentException("초대를 받는 유저 정보가 올바르지 않습니다!");
+                    throw new IllegalArgumentException("초대를 받는 유저 정보가 올바르지 않습니다! : " + toId);
                 }
             });
             //모임-유저연결
@@ -99,7 +101,7 @@ public class MeetingService {
                     .build());
             return meetingRepository.save(target);
         } else {
-            throw new IllegalArgumentException("보내는 유저 정보가 올바르지 않습니다!");
+            throw new IllegalArgumentException("모임을 만드는 유저 정보가 올바르지 않습니다!");
         }
     }
 
@@ -265,18 +267,62 @@ public class MeetingService {
                 .toId(target.getToId())
                 .status(true)
                 .build());
-        //해당 모임 구성원에게 추가된 구성원정보 전송
+
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
-           try {
+            //해당 모임 구성원에게 추가된 구성원정보 전송
+            try {
                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendNewMemberDto.builder()
                        .meetingId(targetMeeting.getId())
                        .userId(acceptUser.getId())
                        .userName(acceptUser.getName())
                        .userImage(acceptUser.getProfileImage())
                        .build(), MethodType.MeetingAccept, SendType.Data);
-           } catch (IOException e) {
+            } catch (IOException e) {
                throw new IllegalArgumentException("실시간 데이터전송 실패! : " + e.getMessage());
-           }
+            }
+            //친구등록되어있는 사람들은 모임에 id추가
+            Optional<Friend> friend1 = friendRepository.findByU1AndU2(acceptUser.getId(), userMeetingMapping.getUser().getId());
+            Optional<Friend> friend2 = friendRepository.findByU1AndU2(userMeetingMapping.getUser().getId(), acceptUser.getId());
+            if(friend1.isPresent()) {
+                List<Long> meets = friend1.get().getMeets();
+                meets.add(targetMeeting.getId());
+                friendRepository.save(Friend.builder()
+                        .id(friend1.get().getId())
+                        .u1(friend1.get().getU1())
+                        .u2(friend1.get().getU2())
+                        .u1Bookmark(friend1.get().isU1Bookmark())
+                        .u2Bookmark(friend1.get().isU2Bookmark())
+                        .meets(meets)
+                        .build());
+            } else if(friend2.isPresent()) {
+                List<Long> meets = friend2.get().getMeets();
+                meets.add(targetMeeting.getId());
+                friendRepository.save(Friend.builder()
+                        .id(friend2.get().getId())
+                        .u1(friend2.get().getU1())
+                        .u2(friend2.get().getU2())
+                        .u1Bookmark(friend2.get().isU1Bookmark())
+                        .u2Bookmark(friend2.get().isU2Bookmark())
+                        .meets(meets)
+                        .build());
+            } else {
+                //이전에 서로 친구가 아닌 경우이므로 친구 새로추가
+                List<Long> meets = new ArrayList<>();
+                meets.add(targetMeeting.getId());
+                friendRepository.save(Friend.builder()
+                        .u1(acceptUser.getId())
+                        .u2(userMeetingMapping.getUser().getId())
+                        .u1Bookmark(false)
+                        .u2Bookmark(false)
+                        .meets(meets)
+                        .build());
+                //새로운 친구이므로 상대방에게 푸시알림 전송
+                try {
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),"친구 추가", acceptUser.getName() + "님이 " + userMeetingMapping.getUser().getName() + "님을 친구로 추가하셨어요.", null, null, SendType.Notification);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("푸시알림 전송실패! : " + e.getMessage());
+                }
+            }
         });
         //해당 모임에 구성원 추가
         userMeetingMappingRepository.save(UserMeetingMapping.builder()

@@ -26,4 +26,6 @@ public class AddPlaceResponse {
     private long likeCount;
 
     private PlaceStatus placeStatus;
+
+    private boolean together;
 }

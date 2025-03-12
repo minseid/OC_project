@@ -1,8 +1,11 @@
 package com.example.OC.constant;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
+@Getter
+@RequiredArgsConstructor
 public enum MethodType {
     PlaceAdd(101),
     PlaceEdit(102),
@@ -24,14 +27,6 @@ public enum MethodType {
     FriendDelete(503);
 
     private final int code;
-
-    MethodType(int code) {
-        this.code = code;
-    }
-
-    public int getCode() {
-        return code;
-    }
 
     @Override
     public String toString() {
