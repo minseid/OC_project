@@ -27,6 +27,7 @@ public class ApiService {
 
     public PlaceAddressDto getKakaoMapPlaceId (String placeName, String placeAddress) {
 
+        //주소가 올바르지 않을때 예외처리하기
         String coordinateUrl = "https://dapi.kakao.com/v2/local/search/address?" + "query=" + placeAddress;
         String placeIdUrl = "https://dapi.kakao.com/v2/local/search/keyword?" + "query=" + placeName;
 
