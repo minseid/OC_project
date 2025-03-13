@@ -25,6 +25,7 @@ repositories {
 
 dependencies {
 	//보안
+	implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -38,6 +39,7 @@ dependencies {
 
 	// 웹 관련 (Spring MVC & Servlet 포함)
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
 
 	// Thymeleaf & Validation
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'

@@ -31,9 +31,9 @@ public class UserService {
         }
 
         // Check if nickname is already taken
-        boolean existsByNickname = userRepository.existsByNickname(request.getName());
-        if (existsByNickname) {
-            log.error("Nickname already exists: {}", request.getName());
+        boolean existsByNickName = userRepository.existsByNickName(request.getNickName());
+        if (existsByNickName) {
+            log.error("NickName already exists: {}", request.getNickName());
             throw new IllegalStateException("이미 사용 중인 닉네임입니다."); // Nickname already exists
         }
 
@@ -44,8 +44,7 @@ public class UserService {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(encryptedPassword)
-                .name(request.getName())
-                .nickName(request.getName()) // Assuming you are using nickname
+                .nickName(request.getNickName()) // Assuming you are using nickname
                 .build();
 
         // Save the user to the database
@@ -58,15 +57,15 @@ public class UserService {
         return SignUpResponse.builder()
                 .email(savedUser.getEmail())
                 .name(savedUser.getName())
-                .nickname(savedUser.getName())
+                .nickName(savedUser.getNickName())
                 .build();
     }
 
     //닉네임 중복확인
-    public boolean existsByNickname(String nickname) {
-        boolean exists = userRepository.existsByNickname(nickname);
+    public boolean existsByNickName(String nickName) {
+        boolean exists = userRepository.existsByNickName(nickName);
         if (exists) {
-            log.warn("Nickname already exists: {}", nickname);
+            log.warn("Nickname already exists: {}", nickName);
         }
         return exists;
     }
@@ -86,8 +85,7 @@ public class UserService {
         // Return user details in the response format
         return UserResponse.builder()
                 .email(user.getEmail())
-                .name(user.getName())
-                .nickname(user.getName()) // Assuming you have a nickname
+                .nickName(user.getNickName()) // Assuming you have a nickname
                 .profileImage(user.getProfileImage()) // Assuming you have profile image
                 .build();
     }

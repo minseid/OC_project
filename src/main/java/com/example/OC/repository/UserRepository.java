@@ -9,22 +9,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 이미 존재하는지 확인
      * 자체 회원가입 아이디 중복확인
-     * @param uid
-     * @return
+     * @param id
      */
-    boolean existsByUid(String uid);
+    boolean existsById(Long id);
 
     /**
      * 닉네임 중복확인
-     * @param nickname
-     * @return
+     * @param nickName
      */
-    boolean existsByNickname(String nickname);
+    boolean existsByNickName(String nickName);
 
     /**
      * 이메일 중복확인
      * @param email
-     * @return
      */
     boolean existsByEmail(String email);
 

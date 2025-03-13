@@ -29,7 +29,7 @@ public class SignUpRequest {
     @Pattern(regexp = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,32}",message = "비밀번호는 숫자, 영문, 특수문자를 포함 8~32자로 입력해주세요")
 
     private String password;
-    @NotEmpty(message = "이름을 입력해주세요")
-    private String name;
+    @NotEmpty(message = "닉네임을 입력해주세요")
+    private String nickName;
     private String profileImage;
 }

@@ -22,18 +22,17 @@ public class UserController {
         SignUpResponse signUpResponse = userService.signUp(signUpRequest);
         UserResponse userResponse = UserResponse.builder()
                 .email(signUpResponse.getEmail())
-                .name(signUpResponse.getName())
-                .nickname(signUpResponse.getNickname()) // Nickname 추가
+                .nickName(signUpResponse.getNickName()) // Nickname 추가
                 .build();
         return ResponseEntity.ok(userResponse);
     }
 
     // 유저 닉네임 중복확인
     @GetMapping("/checkNickname")
-    public ResponseEntity<UserResponse> checkNickname(@RequestParam String nickname) {
-        boolean existsByNickname = userService.existsByNickname(nickname);
+    public ResponseEntity<UserResponse> checkNickname(@RequestParam String nickName) {
+        boolean existsByNickName = userService.existsByNickName(nickName);
         UserResponse userResponse = UserResponse.builder()
-                .existsByNickname(existsByNickname)
+                .existsByNickName(existsByNickName)
                 .build();
         return ResponseEntity.ok(userResponse);
     }

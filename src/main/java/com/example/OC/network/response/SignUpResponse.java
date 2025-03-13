@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class SignUpResponse {
     private String userId;
-    private String nickname;
+    private String nickName;
     private String email;
     private String name;
     private String profileImage;
