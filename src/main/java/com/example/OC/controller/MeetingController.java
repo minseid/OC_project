@@ -27,8 +27,6 @@ public class MeetingController{
 
     private final MeetingService meetingService;
     private final ModelMapper modelMapper;
-    private final FCMService fcmService;
-    private final AwsS3Service awsS3Service;
 
 
     @PostMapping("/api/meeting")
