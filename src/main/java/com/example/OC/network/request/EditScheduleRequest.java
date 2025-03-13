@@ -1,5 +1,6 @@
 package com.example.OC.network.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -14,13 +15,14 @@ import java.time.LocalTime;
 @Builder
 public class EditScheduleRequest {
 
-    @NotNull(message = "일정정보를 입력해주세요!")
-    private Long ScheduleId;
+    @NotNull(message = "모임정보를 입력해주세요!")
+    private Long meetingId;
 
     @NotNull(message = "날짜를 입력해주세요!")
     private LocalDate date;
 
     @NotNull(message = "시각을 입력해주세요!")
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime time;
 
 }

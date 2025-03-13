@@ -1,10 +1,7 @@
 package com.example.OC.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Table(name="Link")
 @Entity
@@ -12,6 +9,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class Link {
 
     @Id
@@ -19,7 +17,7 @@ public class Link {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable=false)
+    @JoinColumn(nullable=false,unique = true)
     private Place place;
 
     @Column

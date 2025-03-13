@@ -1,5 +1,6 @@
 package com.example.OC.service;
 
+import com.example.OC.dto.PlaceAddressDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,7 @@ public class ApiService {
     private String accessKey;
     private final int placeRadius = 50;
 
-    public String getKakaoMapPlaceId (String placeName, String placeAddress) {
+    public PlaceAddressDto getKakaoMapPlaceId (String placeName, String placeAddress) {
 
         String coordinateUrl = "https://dapi.kakao.com/v2/local/search/address?" + "query=" + placeAddress;
         String placeIdUrl = "https://dapi.kakao.com/v2/local/search/keyword?" + "query=" + placeName;
@@ -50,6 +51,13 @@ public class ApiService {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("kakaoapi 응답변환실패!");
         }
-        return rootNode.path("documents").get(0).path("id").asText();
+        return PlaceAddressDto.builder()
+                .name(placeName)
+                .address(placeAddress)
+                .x((float)(Math.floor((Float.parseFloat(x)*1000)/1000.0)))
+                .y((float)(Math.floor((Float.parseFloat(y)*1000)/1000.0)))
+                .detailAddress(roadAddressNode.path("region_2depth_name").asText() + " " + roadAddressNode.path("region_3depth_name").asText())
+                .kakaoLink(rootNode.path("documents").get(0).path("id").asText())
+                .build();
     }
 }

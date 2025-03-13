@@ -39,7 +39,7 @@ public class MeetingController{
 
     @PutMapping("/api/meeting")
     public ResponseEntity<EditMeetingResponse> editMeeting(@RequestPart("data") EditMeetingRequest request, @RequestPart("image") MultipartFile image) {
-        Meeting updated = meetingService.editMeeting(request.getId(),request.getTitle(),request.getDescription(),image);
+        Meeting updated = meetingService.editMeeting(request.getId(),request.getTitle(),request.getDescription(),image,request.isFinished());
         return ResponseEntity.ok(modelMapper.map(updated, EditMeetingResponse.class));
     }
 
@@ -62,15 +62,13 @@ public class MeetingController{
     }
 
     @PostMapping("/api/meeting/invite")
-    public ResponseEntity.BodyBuilder inviteMeeting(@RequestBody InviteRequest request) {
+    public ResponseEntity<Void> inviteMeeting(@RequestBody InviteRequest request) {
         meetingService.addParticipant(request.getMeetingId(), request.getFromId(), request.getToId());
-        return ResponseEntity.ok();
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/api/meeting/invite/ok/{id}")
-    public ResponseEntity<Meeting> inviteOk(@PathVariable Long id) {
+    @PostMapping("/api/meeting/invite/ok")
+    public ResponseEntity<Meeting> inviteOk(@RequestBody Long id) {
         return ResponseEntity.ok(meetingService.inviteOk(id));
     }
-
-
 }

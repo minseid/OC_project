@@ -1,5 +1,5 @@
 package com.example.OC.constant;
 
 public enum ImageType {
-    Meeting, User
+    Meeting, Profile, Inquiry
 }

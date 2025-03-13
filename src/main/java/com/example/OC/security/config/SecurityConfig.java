@@ -1,5 +1,6 @@
 package com.example.OC.security.config;
 
+import com.example.OC.constant.UserRole;
 import com.example.OC.security.jwt.JwtFilter;
 import com.example.OC.security.jwt.LoginFilter;
 import com.example.OC.security.oauth2.KakaoOauthService;
@@ -36,6 +37,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeRequests(auth -> auth
                         .requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.getKey())
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
