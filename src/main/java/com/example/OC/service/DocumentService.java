@@ -212,7 +212,7 @@ public class DocumentService {
         Notice saved = noticeRepository.save(Notice.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .noticeStatus(NoticeStatus.Notice)
+                .noticeStatus(NoticeStatus.FAQ)
                 .build());
         return AddNoticeResponse.builder()
                 .noticeId(saved.getId())
