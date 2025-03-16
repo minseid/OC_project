@@ -183,7 +183,7 @@ public class PlaceService {
             }
         });
         return PickPlaceResponse.builder()
-                .placeId(saved.getId())
+                .id(saved.getId())
                 .likeCount(saved.getLikeCount())
                 .placeStatus(saved.getPlaceStatus())
                 .build();
@@ -217,7 +217,7 @@ public class PlaceService {
             }
         });
         return PickPlaceResponse.builder()
-                .placeId(saved.getId())
+                .id(saved.getId())
                 .likeCount(saved.getLikeCount())
                 .placeStatus(saved.getPlaceStatus())
                 .build();
@@ -288,7 +288,7 @@ public class PlaceService {
                 }
             });
             return EditCommentResponse.builder()
-                    .commentId(saved.getId())
+                    .id(saved.getId())
                     .description(saved.getDescription())
                     .build();
         } else {

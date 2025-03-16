@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 public class LikePlaceRequest {
 
-    private Long placeId;
+    private Long id;
 
     private boolean like;
 

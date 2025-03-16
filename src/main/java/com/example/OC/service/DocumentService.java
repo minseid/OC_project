@@ -119,7 +119,7 @@ public class DocumentService {
 
     //관리자가 1:1문의에 답변다는 메서드
     public AddInquiryAdminResponse answerInquiry(AddAnswerRequest request) {
-        Inquiry target = findService.valid(inquiryRepository.findById(request.getInquiryId()),EntityType.Inquiry);
+        Inquiry target = findService.valid(inquiryRepository.findById(request.getId()),EntityType.Inquiry);
         Inquiry saved = inquiryRepository.save(Inquiry.builder()
                 .id(target.getId())
                 .user(target.getUser())
@@ -146,7 +146,7 @@ public class DocumentService {
         List<GetNoticeResponse> responseList = new ArrayList<>();
         noticeRepository.findAllByNoticeStatus(NoticeStatus.Notice).forEach(notice -> {
             responseList.add(GetNoticeResponse.builder()
-                    .noticeId(notice.getId())
+                    .id(notice.getId())
                     .title(notice.getTitle())
                     .content(notice.getContent())
                     .build());
@@ -162,7 +162,7 @@ public class DocumentService {
                 .noticeStatus(NoticeStatus.Notice)
                 .build());
         return AddNoticeResponse.builder()
-                .noticeId(saved.getId())
+                .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .build();
@@ -188,7 +188,7 @@ public class DocumentService {
                 .noticeStatus(target.getNoticeStatus())
                 .build());
         return EditNoticeResponse.builder()
-                .noticeId(saved.getId())
+                .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .build();
@@ -199,7 +199,7 @@ public class DocumentService {
         List<GetNoticeResponse> responseList = new ArrayList<>();
         noticeRepository.findAllByNoticeStatus(NoticeStatus.FAQ).forEach(notice -> {
             responseList.add(GetNoticeResponse.builder()
-                    .noticeId(notice.getId())
+                    .id(notice.getId())
                     .title(notice.getTitle())
                     .content(notice.getContent())
                     .build());
@@ -215,7 +215,7 @@ public class DocumentService {
                 .noticeStatus(NoticeStatus.FAQ)
                 .build());
         return AddNoticeResponse.builder()
-                .noticeId(saved.getId())
+                .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .build();
@@ -241,7 +241,7 @@ public class DocumentService {
                 .noticeStatus(target.getNoticeStatus())
                 .build());
         return EditNoticeResponse.builder()
-                .noticeId(saved.getId())
+                .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .build();

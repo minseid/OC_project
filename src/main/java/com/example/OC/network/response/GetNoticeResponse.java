@@ -10,7 +10,7 @@ import lombok.*;
 @ToString
 public class GetNoticeResponse {
 
-    private Long noticeId;
+    private Long id;
 
     private String title;
 

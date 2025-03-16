@@ -12,7 +12,7 @@ import lombok.*;
 public class DeleteCommentRequest {
 
     @NotBlank(message = "코멘트정보를 입력해주세요")
-    private Long commentId;
+    private Long id;
 
     @NotBlank(message = "유저정보를 입력해주세요")
     private Long userId;

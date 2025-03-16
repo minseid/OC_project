@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 public class PickPlaceResponse {
 
-    private Long placeId;
+    private Long id;
 
     private long likeCount;
 

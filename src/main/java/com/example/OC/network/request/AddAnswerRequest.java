@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 public class AddAnswerRequest {
 
-    private Long inquiryId;
+    private Long id;
 
     private String answerContent;
 }
