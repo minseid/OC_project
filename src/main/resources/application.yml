@@ -9,11 +9,17 @@ spring:
 #    url: jdbc:mysql://<IP>:<Port>/<DB>?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
 #    username: ${DB_USERNAME}
 #    password: ${DB_PASSWORD}
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/oudi?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
+#    username: root
+#    password: 1234
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/oudi?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://localhost:3306/oc?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: 1234
+    password: 613986
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -59,13 +65,24 @@ spring:
           user-name-attribute: sub
 cloud:
   aws:
+    s3:
+      bucket: "audi.image"
     stack:
       auto: false
     region:
       static : ap-northeast-2
+    credentials:
+      access-key: ${AWS_S3_ACCESS_KEY}
+      secret-key: ${AWS_S3_SECRET_KEY}
 
 server:
   port: 8080
 logging:
   level:
     org.springframework: info
+
+dotenv:
+  enabled: true
+
+KAKAO_MAP_ACCESS_KEY: ${KAKAO_MAP_ACCESS_KEY}
+

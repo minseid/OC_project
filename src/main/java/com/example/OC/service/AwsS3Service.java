@@ -99,6 +99,11 @@ public class AwsS3Service {
                 splitedLink = targetLink.split("/");
                 amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, splitedLink[0]+"/"+splitedLink[1]+"/"+splitedLink[2].substring(0,36) + URLDecoder.decode(splitedLink[2].substring(36))));
                 break;
+            case Inquiry:
+                targetLink = link.substring(link.indexOf(inquiryImgDir));
+                splitedLink = targetLink.split("/");
+                amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, splitedLink[0]+"/"+splitedLink[1]+"/"+splitedLink[2].substring(0,36) + URLDecoder.decode(splitedLink[2].substring(36))));
+                break;
             default:
                 break;
         }

@@ -38,7 +38,6 @@ public class MeetingService {
     private final FriendRepository friendRepository;
 
     private final String linkForInvite = "https://www.audi.com/";
-    private final FutureValidatorForReadableInstant futureValidatorForReadableInstant;
 
     //모임 초대용 링크 만드는 메서드
     private String makeLink(){
