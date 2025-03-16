@@ -7,6 +7,7 @@ import com.example.OC.service.AwsS3Service;
 import com.example.OC.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,16 +33,15 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
     }
 
-    // 유저 닉네임 중복확인
-    @GetMapping("/checkNickname")
-    public ResponseEntity<UserResponse> checkNickname(@RequestParam String nickName) {
-        boolean existsByNickName = userService.existsByNickName(nickName);
-        UserResponse userResponse = UserResponse.builder()
-                .existsByNickName(existsByNickName)
-                .build();
-        return ResponseEntity.ok(userResponse);
+    // 유저 이메일 중복 확인
+    @PostMapping("/checkEmail")
+    public ResponseEntity<String> checkEmail(@RequestBody String email) {
+        boolean isEmailExist = userService.isEmailExist(email);
+        if (isEmailExist) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("사용중인 이메일입니다.");
+        }
+        return ResponseEntity.ok("사용 가능한 이메일입니다.");
     }
-
     // 유저 마이페이지 조회
     @GetMapping("/mypage/{userId}")
     public ResponseEntity<UserResponse> mypage(@PathVariable String userId) {
@@ -56,7 +56,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
     //유저 프로필 이미지 등록
-    @PostMapping("/{userID}/uploadProfile")
+    @PostMapping("/{userId}/uploadProfile")
     public ResponseEntity<String> uploadProfile(@PathVariable String userID, @RequestParam("file") MultipartFile file) {
         try{
             String imageUrl = awsS3Service.uploadProfileImage(Long.valueOf(userID),file);

@@ -14,11 +14,26 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         // 로그아웃 후 리다이렉트 URL 설정
-        String redirectUrl = "/login?logout=true";  // 로그아웃 후 리다이렉트할 URL
+        String redirectUrl = "/login?logout=true";  // 기본적으로 로그인 페이지로 리다이렉트
 
-        // 리다이렉트
+        // 소셜 로그인 후 로그아웃 처리
+        String provider = (authentication != null) ? (String) authentication.getPrincipal() : null;
+
+        if (provider != null) {
+            if (provider.equals("naver")) {
+                // 네이버 로그아웃 처리 후 리다이렉트 URL
+                redirectUrl = "/naver-logout-success";
+            } else if (provider.equals("apple")) {
+                // 애플 로그아웃 처리 후 리다이렉트 URL
+                redirectUrl = "/apple-logout-success";
+            } else if (provider.equals("kakao")) {
+                // 카카오 로그아웃 처리 후 리다이렉트 URL
+                redirectUrl = "/kakao-logout-success";
+
+            }
+        }
+
+        // 로그아웃 후 리다이렉트
         response.sendRedirect(redirectUrl);
     }
-
-
 }

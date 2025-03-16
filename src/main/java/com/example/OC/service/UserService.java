@@ -60,14 +60,9 @@ public class UserService {
                 .nickName(savedUser.getNickName())
                 .build();
     }
-
-    //닉네임 중복확인
-    public boolean existsByNickName(String nickName) {
-        boolean exists = userRepository.existsByNickName(nickName);
-        if (exists) {
-            log.warn("Nickname already exists: {}", nickName);
-        }
-        return exists;
+    //이메일 중복확인
+    public boolean isEmailExist(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     //마이페이지 조회
