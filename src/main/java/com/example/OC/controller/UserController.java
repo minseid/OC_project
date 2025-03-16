@@ -3,11 +3,15 @@ package com.example.OC.controller;
 import com.example.OC.network.request.SignUpRequest;
 import com.example.OC.network.response.SignUpResponse;
 import com.example.OC.network.response.UserResponse;
+import com.example.OC.service.AwsS3Service;
 import com.example.OC.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final AwsS3Service awsS3Service;
 
     // 유저 회원가입
     @PostMapping("/signup")
@@ -49,5 +54,15 @@ public class UserController {
     public ResponseEntity<Void> withdraw(@PathVariable String userId) {
         userService.deleteUser(userId);
         return ResponseEntity.ok().build();
+    }
+    //유저 프로필 이미지 등록
+    @PostMapping("/{userID}/uploadProfile")
+    public ResponseEntity<String> uploadProfile(@PathVariable String userID, @RequestParam("file") MultipartFile file) {
+        try{
+            String imageUrl = awsS3Service.uploadProfileImage(Long.valueOf(userID),file);
+            return ResponseEntity.ok(imageUrl);
+        }catch (IOException e){
+            return ResponseEntity.badRequest().body("프로필 업로드 실패" + e.getMessage());
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.OC.service;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -7,6 +8,8 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.IOUtils;
 import com.example.OC.constant.ImageType;
+import com.example.OC.entity.User;
+import com.example.OC.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +28,8 @@ import java.util.UUID;
 public class AwsS3Service {
     
     //임시주석
+    private final UserRepository userRepository;
+
     private final AmazonS3Client amazonS3Client;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -97,5 +102,23 @@ public class AwsS3Service {
             default:
                 break;
         }
+    }
+    public String uploadProfileImage(Long userId, MultipartFile file) throws IOException {
+        // 파일명 설정 (UUID 사용)
+        String fileName = "profile-images/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+        // S3에 업로드
+        amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), null)
+                .withCannedAcl(CannedAccessControlList.PublicRead));
+
+        // S3 URL 반환
+        String fileUrl = amazonS3Client.getUrl(bucket, fileName).toString();
+
+        // DB에 이미지 URL 저장
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setProfileImage(fileUrl);
+        userRepository.save(user);
+
+        return fileUrl;
     }
 }
