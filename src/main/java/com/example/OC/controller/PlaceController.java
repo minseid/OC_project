@@ -1,8 +1,5 @@
 package com.example.OC.controller;
 
-import com.example.OC.entity.Comment;
-import com.example.OC.entity.Link;
-import com.example.OC.entity.Place;
 import com.example.OC.network.request.*;
 import com.example.OC.network.response.*;
 import com.example.OC.service.PlaceService;
@@ -26,19 +23,19 @@ public class PlaceController{
     }
 
     @DeleteMapping("/api/place")
-    public ResponseEntity<Void> deletePlace(@RequestBody Long placeId) {
-        placeService.deletePlace(placeId);
+    public ResponseEntity<Void> deletePlace(@RequestBody Long id) {
+        placeService.deletePlace(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/place/pick")
-    public ResponseEntity<PickPlaceResponse> pickPlace(@RequestBody Long placeId) {
-        return ResponseEntity.ok(placeService.pickPlace(placeId));
+    public ResponseEntity<PickPlaceResponse> pickPlace(@RequestBody Long id) {
+        return ResponseEntity.ok(placeService.pickPlace(id));
     }
 
     @PostMapping("/api/place/like")
     public ResponseEntity<PickPlaceResponse> likePlace(@RequestBody LikePlaceRequest request) {
-        return ResponseEntity.ok(placeService.likePlace(request.getPlaceId(), request.isLike()));
+        return ResponseEntity.ok(placeService.likePlace(request.getId(), request.isLike()));
     }
 
     @PostMapping("/api/place/comment")
@@ -48,12 +45,12 @@ public class PlaceController{
 
     @PutMapping("/api/place/comment")
     public ResponseEntity<EditCommentResponse> editComment(@RequestBody EditCommentRequest request) {
-        return ResponseEntity.ok(placeService.editComment(request.getCommentId(), request.getUserId(), request.getDescription()));
+        return ResponseEntity.ok(placeService.editComment(request.getId(), request.getUserId(), request.getDescription()));
     }
 
     @DeleteMapping("/api/place/comment")
     public ResponseEntity<Void> deleteComment(@RequestBody DeleteCommentRequest request) {
-        placeService.deleteComment(request.getCommentId(), request.getUserId());
+        placeService.deleteComment(request.getId(), request.getUserId());
         return ResponseEntity.ok().build();
     }
 
