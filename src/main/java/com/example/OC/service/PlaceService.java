@@ -109,7 +109,7 @@ public class PlaceService {
         //모임구성원들에게 새로운 장소추가정보 전송
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
             try {
-                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendNewPlaceDto.builder()
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendAddPlaceDto.builder()
                                 .meetingId(targetMeeting.getId())
                                 .placeId(savedPlace.getId())
                                 .placeName(savedPlace.getName())
@@ -147,7 +147,7 @@ public class PlaceService {
         //모임 구성원들에게 장소삭제정보 전송
         userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).forEach(userMeetingMapping -> {
             try {
-                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null,target,MethodType.PlaceDelete,SendType.Data);
+                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null,SendDeletePlaceDto.builder().id(target.getId()).build(),MethodType.PlaceDelete,SendType.Data);
             } catch (IOException e) {
                 throw new IllegalArgumentException("실시간 데이터 전송 실패 : " + e.getMessage());
             }

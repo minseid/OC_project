@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Builder
-public class SendNewMemberDto {
+public class SendAddMemberDto {
 
     private Long meetingId;
 
