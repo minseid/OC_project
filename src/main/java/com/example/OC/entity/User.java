@@ -7,19 +7,17 @@ import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
-@Table(name = "User") // 테이블 이름과 매핑
+@Table(name = "user") // 테이블 이름과 매핑
 @Entity
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 @Builder
-public class User extends TimeBaseEntity {
+public class User{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본 키 자동 생성 전략
-    @Column // 'User_id' 컬럼과 매핑
     private Long id;
 
     @Column(name = "User_name") // 'User_name' 컬럼과 매핑
