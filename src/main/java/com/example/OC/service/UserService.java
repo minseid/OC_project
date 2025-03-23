@@ -46,7 +46,6 @@ public class UserService {
                 .password(encryptedPassword)
                 .nickName(request.getNickName()) // Assuming you are using nickname
                 .build();
-        System.out.println("빌드완료 : " + user.toString());
 
         // Save the user to the database
         User savedUser = userRepository.save(user);

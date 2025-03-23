@@ -24,6 +24,10 @@ public class Place extends TimeBaseEntity {
     @JoinColumn(nullable = false)
     private Meeting meeting;
 
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private List<User> user;
+
     @Column(nullable = false)
     private String name;
 
