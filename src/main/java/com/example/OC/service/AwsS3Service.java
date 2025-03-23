@@ -121,7 +121,7 @@ public class AwsS3Service {
 
         // DB에 이미지 URL 저장
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        user.setProfileImage(fileUrl);
+        //user.setProfileImage(fileUrl);
         userRepository.save(user);
 
         return fileUrl;
