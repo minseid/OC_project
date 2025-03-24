@@ -1,5 +1,6 @@
 package com.example.OC.service;
 
+import com.example.OC.constant.UserRole;
 import com.example.OC.entity.User;
 import com.example.OC.network.request.SignUpRequest;
 import com.example.OC.network.response.SignUpResponse;
@@ -45,6 +46,7 @@ public class UserService {
                 .email(request.getEmail())
                 .password(encryptedPassword)
                 .nickName(request.getNickName()) // Assuming you are using nickname
+                .role(UserRole.USER) // 기본 역할 설정
                 .build();
         System.out.println("빌드완료 : " + user.toString());
 

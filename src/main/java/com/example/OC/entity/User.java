@@ -46,9 +46,11 @@ public class User extends TimeBaseEntity {
     @Column(name = "role", nullable = false) // 'role' 컬럼과 매핑
     private UserRole role;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false) // 'created_at' 컬럼과 매핑 (스네이크 케이스)
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at") // 'updated_at' 컬럼과 매핑 (스네이크 케이스)
     private LocalDateTime updatedAt;
 }
