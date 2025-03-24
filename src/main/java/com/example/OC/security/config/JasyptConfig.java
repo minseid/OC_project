@@ -11,10 +11,6 @@ import org.jasypt.encryption.StringEncryptor;
 
 @Configuration
 public class JasyptConfig {
-
-//    @Value("${jasypt.encryptor.password}") 외부 환경변수를 어노테이션으로 주입받아도 되고 아래처럼 설정하는 방법도 있다.
-//    private String JASTYPTKEY;
-
     @Bean("jasyptStringEncryptor")
     public StringEncryptor stringEncryptor() {
 

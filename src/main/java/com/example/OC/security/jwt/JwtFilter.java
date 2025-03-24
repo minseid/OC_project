@@ -38,7 +38,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     String username = jwtUtil.extractUsername(token);
                     String role = jwtUtil.extractRole(token);
 
-                    // 인증 객체 생성
                     Authentication auth = new UsernamePasswordAuthenticationToken(
                             new User(username, "", Collections.singletonList(new SimpleGrantedAuthority(role))),
                             null,
@@ -46,22 +45,17 @@ public class JwtFilter extends OncePerRequestFilter {
                     );
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 } else {
-                    // 토큰 만료 시 로깅 또는 에러 처리
                     logger.info("Token is expired.");
-                    // response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
                 }
             } catch (JwtException e) {
-                // JWT 처리 오류 발생 시, SecurityContext 초기화 및 로깅
                 SecurityContextHolder.clearContext();
                 logger.error("JWT processing error: ", e);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
         }
         chain.doFilter(request, response);
     }
 
-
-    // Authorization 헤더에서 Bearer 토큰 추출
     private String extractToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -69,4 +63,12 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // 회원가입 경로는 필터링하지 않음
+        return path.equals("/api/user/signup");
+    }
 }
+

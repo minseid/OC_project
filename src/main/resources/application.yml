@@ -17,18 +17,20 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/oc?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/oudi?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: 613986 #1234
+    password: 1234 #1234
 
-  jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-    hibernate:
-      ddl-auto: update
+
+
+  #  jpa:
+#    database-platform: org.hibernate.dialect.MySQL8Dialect
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#    hibernate:
+#      ddl-auto: update
 
   security:
     oauth2:
@@ -79,7 +81,7 @@ server:
   port: 8080
 logging:
   level:
-    org.springframework: info
+    org.springframework: debug
 
 dotenv:
   enabled: true

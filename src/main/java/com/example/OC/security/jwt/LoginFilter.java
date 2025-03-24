@@ -3,6 +3,7 @@ package com.example.OC.security.jwt;
 import lombok.Getter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,8 +19,9 @@ import java.util.ArrayList;
 @Component
 public class LoginFilter extends OncePerRequestFilter {
 
+    private static final String LOGIN_PATH = "/login";
+
     private final AuthenticationManager authenticationManager;
-    @Getter
     private final PasswordEncoder passwordEncoder;
 
     public LoginFilter(AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
@@ -31,7 +33,7 @@ public class LoginFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        if (request.getRequestURI().equals("/login") && request.getMethod().equals("POST")) {
+        if (request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().equals(LOGIN_PATH)) {
             String username = request.getParameter("username");
             String password = request.getParameter("password");
 
@@ -39,20 +41,30 @@ public class LoginFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(username, password);
 
             try {
-                authenticationManager.authenticate(authenticationToken);
+                // AuthenticationManager를 통해 인증 시도
+                Authentication authResult = authenticationManager.authenticate(authenticationToken);
 
-                User user = new User(username, password, new ArrayList<>());
-                SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities())
-                );
+                // 인증 성공 시 SecurityContext에 저장
+                SecurityContextHolder.getContext().setAuthentication(authResult);
+
+                // 응답 처리 (예: JSON 반환)
+                response.setContentType("application/json");
+                response.getWriter().write("{\"message\": \"Login successful\"}");
             } catch (Exception e) {
+                // 인증 실패 처리
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid credentials");
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Invalid credentials\"}");
                 return;
             }
+        } else {
+            chain.doFilter(request, response); // 다른 요청은 다음 필터로 전달
         }
-
-        chain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // /login 경로만 필터링 대상으로 설정
+        return !request.getRequestURI().equals(LOGIN_PATH);
+    }
 }

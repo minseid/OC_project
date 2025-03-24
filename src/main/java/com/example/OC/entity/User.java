@@ -4,52 +4,50 @@ import com.example.OC.constant.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 
-@Table(name = "User") // 테이블 이름과 매핑
 @Entity
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
+@Table(name = "user") // 테이블 이름과 명시적으로 매핑
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class User extends TimeBaseEntity {
+public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본 키 자동 생성 전략
-    @Column // 'User_id' 컬럼과 매핑
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false) // 'id' 컬럼과 매핑
     private Long id;
 
-    @Column(name = "User_name") // 'User_name' 컬럼과 매핑
+    @Column(name = "name") // 'name' 컬럼과 매핑
     private String name;
 
-    @Column(name = "User_image") // 'User_image' 컬럼과 매핑
+    @Column(name = "profile_image") // 'profile_image' 컬럼과 매핑
     private String profileImage;
 
-    @Column // 'fcmKey' 컬럼과 매핑 (테이블에 없으면 삭제)
+    @Column(name = "fcm_key") // 'fcm_key' 컬럼과 매핑
     private String fcmKey;
 
-    @Column(nullable = false, name = "User_nickname") // 'User_nickname' 컬럼과 매핑
+    @Column(name = "nick_name", nullable = false) // 'nick_name' 컬럼과 매핑 (스네이크 케이스)
     private String nickName;
 
-    @Column(name = "User_email") // 'User_email' 컬럼과 매핑
+    @Column(name = "email", nullable = false, unique = true) // 'email' 컬럼과 매핑
     private String email;
 
-    @Column(name = "User_password") // 'User_password' 컬럼과 매핑
+    @Column(name = "password", nullable = false) // 'password' 컬럼과 매핑
     private String password;
 
-    @CreatedDate // 생성 시간 자동 관리 (Auditing 활성화 필요)
-    @Column(name = "User_created_at", updatable = false) // 'User_created_at' 컬럼과 매핑
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false) // 'role' 컬럼과 매핑
+    private UserRole role;
+
+    @Column(name = "created_at", updatable = false) // 'created_at' 컬럼과 매핑 (스네이크 케이스)
     private LocalDateTime createdAt;
 
-    @Enumerated(EnumType.STRING) // Enum 타입을 문자열로 저장
-    private UserRole role; // 사용자 역할
-
-    @Column(name = "sms_verified") // 'sns_verified' 컬럼과 매핑 (테이블에 없으면 삭제)
-    private String snsVerified;
-
-    @Column(nullable = false, name = "User_alarm") // 'User_alarm' 컬럼과 매핑
-    private boolean alarm;
+    @Column(name = "updated_at") // 'updated_at' 컬럼과 매핑 (스네이크 케이스)
+    private LocalDateTime updatedAt;
 }

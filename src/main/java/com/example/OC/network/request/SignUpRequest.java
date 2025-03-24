@@ -22,7 +22,7 @@ public class SignUpRequest {
     * 최소 하나의 알파벳 문자 포함(a-z,A-z)
     * 최소 하나의 특수문자 포함
     * 공백 제외
-    * 길이 8~32자
+    * 길이 8~32자 1234qwer
     */
 
     @NotEmpty(message = "비밀번호를 입력해주세요")
