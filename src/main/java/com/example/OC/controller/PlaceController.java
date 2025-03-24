@@ -59,4 +59,9 @@ public class PlaceController{
         return ResponseEntity.ok(placeService.getComment(id));
     }
 
+    @GetMapping("/api/place")
+    public ResponseEntity<List<GetPlaceResponse>> getPlaces(@RequestParam Long meetingId, @RequestParam Long userId) {
+        return ResponseEntity.ok(placeService.getplaces(meetingId, userId));
+    }
+
 }

@@ -19,4 +19,5 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     List<Place> findAllByMeeting(Meeting meeting);
 
+    boolean existsByMeeting(Meeting meeting);
 }

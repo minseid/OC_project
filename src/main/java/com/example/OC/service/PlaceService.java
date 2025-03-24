@@ -35,13 +35,48 @@ public class PlaceService {
     private final LinkRepository linkRepository;
     private final FCMService fcmService;
     private final UserMeetingMappingRepository userMeetingMappingRepository;
+    private final UserPlaceMappingRepository userPlaceMappingRepository;
     private final String naverMapLink = "nmap://search?query=";
+
+    //장소 조회하는 메서드
+    public List<GetPlaceResponse> getplaces(Long meetingId, Long userId) {
+
+        //id 유효성 검사
+        Meeting target = findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting);
+        User targetUser = findService.valid(userRepository.findById(userId),EntityType.User);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, target)) {
+            throw new IllegalArgumentException("해당 유저는 해당 모임의 구성원이 아닙니다!");
+        }
+        List<GetPlaceResponse> places = new ArrayList<>();
+        //해당 Meeting에 Place가 있는지 확인
+        if(!placeRepository.existsByMeeting(target)) {
+            return null;
+        }
+        placeRepository.findAllByMeeting(target).forEach(place -> {
+            Link link = findService.valid(linkRepository.findByPlace(place),EntityType.Link);
+            places.add(GetPlaceResponse.builder()
+                    .id(place.getId())
+                    .meetingId(meetingId)
+                    .naverLink(link.getNaverLink())
+                    .kakaoLink(link.getKakaoLink())
+                    .name(place.getName())
+                    .address(place.getAddress())
+                    .likeCount(place.getLikeCount())
+                    .placeStatus(place.getPlaceStatus())
+                    .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
+                    .build());
+        });
+        return places;
+    }
 
     //장소를 추가하는 메서드
     public AddPlaceResponse addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
         //각종 id 유효성 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
+            throw new IllegalArgumentException("해당 유저는 해당 모임에 속해있지 않습니다!");
+        }
         //카카오맵 api 이용해 해당 장소 정보 검색
         PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
         //해당 모임과 좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
@@ -60,20 +95,30 @@ public class PlaceService {
             } else {
                 //해당 장소가 있으므로 사용자만 추가
                 Place targetPlace = places.get(0);
-                List<User> users = targetPlace.getUser();
-                users.add(targetUser);
-                Place saved = placeRepository.save(Place.builder()
-                        .id(targetPlace.getId())
-                        .meeting(targetPlace.getMeeting())
-                        .user(users)
-                        .name(targetPlace.getName())
-                        .address(targetPlace.getAddress())
-                        .x(targetPlace.getX())
-                        .y(targetPlace.getY())
-                        .likeCount(targetPlace.getLikeCount())
-                        .placeStatus(targetPlace.getPlaceStatus())
+                //해당장소를 공유한 유저에 targetUser가 있는지 확인
+                List<UserPlaceMapping> users = userPlaceMappingRepository.findAllByPlace(targetPlace);
+                users.forEach(userPlaceMapping -> {
+                    if(userPlaceMapping.getUser() == targetUser) {
+                        throw new IllegalArgumentException("해당유저는 똑같은 장소를 이미 공유했습니다!");
+                    }
+                });
+                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 해당 장소를 공유한 사람이 두명이라면 다른사람에게 같이 찾은장소라고 전송
+                List<UserPlaceMapping> mappings = userPlaceMappingRepository.findAllByPlace(targetPlace);
+                if(mappings.size() == 1) {
+                    try {
+                        fcmService.sendMessageToken(mappings.get(0).getUser().getId(),null,null,SendTogetherPlaceDto.builder()
+                                .placeId(targetPlace.getId())
+                                .together(true)
+                                .build(),MethodType.PlaceTogether,SendType.Data);
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+                    }
+                }
+                userPlaceMappingRepository.save(UserPlaceMapping.builder()
+                        .user(targetUser)
+                        .place(targetPlace)
                         .build());
-                return addPlaceResponse(findService.valid(linkRepository.findByPlace(saved),EntityType.Link),true);
+                return addPlaceResponse(findService.valid(linkRepository.findByPlace(targetPlace),EntityType.Link),true);
             }
         }
     }
@@ -94,17 +139,18 @@ public class PlaceService {
 
     private Link newPlace(User targetUser, Meeting targetMeeting, String name, String address,PlaceAddressDto placeAddressDto, String naverLink ) {
         //새로운 리스트 만들어서 유저추가후 장소저장
-        List<User> users = new ArrayList<>();
-        users.add(targetUser);
         Place savedPlace = placeRepository.save(Place.builder()
                 .meeting(targetMeeting)
-                .user(users)
                 .name(name)
                 .address(address)
                 .x(placeAddressDto.getX())
                 .y(placeAddressDto.getY())
                 .likeCount(0)
                 .placeStatus(PlaceStatus.NotPicked)
+                .build());
+        userPlaceMappingRepository.save(UserPlaceMapping.builder()
+                .user(targetUser)
+                .place(savedPlace)
                 .build());
         //모임구성원들에게 새로운 장소추가정보 전송
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
@@ -164,7 +210,6 @@ public class PlaceService {
         Place saved = placeRepository.save(Place.builder()
                     .id(target.getId())
                     .meeting(target.getMeeting())
-                    .user(target.getUser())
                     .name(target.getName())
                     .address(target.getAddress())
                     .likeCount(target.getLikeCount())
@@ -198,7 +243,6 @@ public class PlaceService {
         Place saved = placeRepository.save(Place.builder()
                 .id(target.getId())
                 .meeting(target.getMeeting())
-                .user(target.getUser())
                 .name(target.getName())
                 .address(target.getAddress())
                 .likeCount(like?(target.getLikeCount()>userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).size()?0:1):(target.getLikeCount()>0?-1:0))
@@ -230,7 +274,7 @@ public class PlaceService {
         Place targetPlace = findService.valid(placeRepository.findById(placeId), EntityType.Place);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         //해장 장소를 공유한 사용자가 맞는지 확인
-        if(targetPlace.getUser().contains(targetUser)) {
+        if(userPlaceMappingRepository.existsByUserAndPlace(targetUser,targetPlace)) {
             //코멘트 추가
             Comment saved = commentRepository.save(Comment.builder()
                     .place(targetPlace)

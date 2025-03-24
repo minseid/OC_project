@@ -9,14 +9,15 @@ import org.springframework.data.annotation.LastModifiedDate;
 import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 
+@Table(name = "User") // 테이블 이름과 매핑
 @Entity
-@Table(name = "user") // 테이블 이름과 명시적으로 매핑
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class User {
+public class User extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
