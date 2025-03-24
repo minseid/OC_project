@@ -44,7 +44,7 @@ public class PlaceService {
         //id 유효성 검사
         Meeting target = findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId),EntityType.User);
-        if(!userMeetingMappingRepository.existsByIdAndUser(meetingId,targetUser)) {
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, target)) {
             throw new IllegalArgumentException("해당 유저는 해당 모임의 구성원이 아닙니다!");
         }
         List<GetPlaceResponse> places = new ArrayList<>();
@@ -74,6 +74,9 @@ public class PlaceService {
         //각종 id 유효성 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
+            throw new IllegalArgumentException("해당 유저는 해당 모임에 속해있지 않습니다!");
+        }
         //카카오맵 api 이용해 해당 장소 정보 검색
         PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
         //해당 모임과 좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
@@ -92,8 +95,8 @@ public class PlaceService {
             } else {
                 //해당 장소가 있으므로 사용자만 추가
                 Place targetPlace = places.get(0);
-                List<UserPlaceMapping> users = userPlaceMappingRepository.findAllByPlace(targetPlace);
                 //해당장소를 공유한 유저에 targetUser가 있는지 확인
+                List<UserPlaceMapping> users = userPlaceMappingRepository.findAllByPlace(targetPlace);
                 users.forEach(userPlaceMapping -> {
                     if(userPlaceMapping.getUser() == targetUser) {
                         throw new IllegalArgumentException("해당유저는 똑같은 장소를 이미 공유했습니다!");
@@ -103,6 +106,7 @@ public class PlaceService {
                         .user(targetUser)
                         .place(targetPlace)
                         .build());
+                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 해당 장소를 공유한 사람이 두명이라면 다른사람에가 같이 찾은장소라고 전송
                 return addPlaceResponse(findService.valid(linkRepository.findByPlace(targetPlace),EntityType.Link),true);
             }
         }
