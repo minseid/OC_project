@@ -38,6 +38,37 @@ public class PlaceService {
     private final UserPlaceMappingRepository userPlaceMappingRepository;
     private final String naverMapLink = "nmap://search?query=";
 
+    //장소 조회하는 메서드
+    public List<GetPlaceResponse> getplaces(Long meetingId, Long userId) {
+
+        //id 유효성 검사
+        Meeting target = findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting);
+        User targetUser = findService.valid(userRepository.findById(userId),EntityType.User);
+        if(!userMeetingMappingRepository.existsByIdAndUser(meetingId,targetUser)) {
+            throw new IllegalArgumentException("해당 유저는 해당 모임의 구성원이 아닙니다!");
+        }
+        List<GetPlaceResponse> places = new ArrayList<>();
+        //해당 Meeting에 Place가 있는지 확인
+        if(!placeRepository.existsByMeeting(target)) {
+            return null;
+        }
+        placeRepository.findAllByMeeting(target).forEach(place -> {
+            Link link = findService.valid(linkRepository.findByPlace(place),EntityType.Link);
+            places.add(GetPlaceResponse.builder()
+                    .id(place.getId())
+                    .meetingId(meetingId)
+                    .naverLink(link.getNaverLink())
+                    .kakaoLink(link.getKakaoLink())
+                    .name(place.getName())
+                    .address(place.getAddress())
+                    .likeCount(place.getLikeCount())
+                    .placeStatus(place.getPlaceStatus())
+                    .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
+                    .build());
+        });
+        return places;
+    }
+
     //장소를 추가하는 메서드
     public AddPlaceResponse addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
         //각종 id 유효성 확인
