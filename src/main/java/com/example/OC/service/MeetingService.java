@@ -5,13 +5,11 @@ import com.example.OC.constant.MethodType;
 import com.example.OC.constant.SendType;
 import com.example.OC.entity.*;
 import com.example.OC.network.fcm.SendDeleteFriendDto;
-import com.example.OC.network.fcm.SendEditMeetingDto;
-import com.example.OC.network.fcm.SendNewMemberDto;
+import com.example.OC.network.fcm.SendAddMemberDto;
 import com.example.OC.network.response.GetParticipantsResponse;
 import com.example.OC.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.internal.constraintvalidators.bv.time.future.FutureValidatorForReadableInstant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -270,7 +268,7 @@ public class MeetingService {
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
             //해당 모임 구성원에게 추가된 구성원정보 전송
             try {
-               fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendNewMemberDto.builder()
+               fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendAddMemberDto.builder()
                        .meetingId(targetMeeting.getId())
                        .userId(acceptUser.getId())
                        .userName(acceptUser.getName())

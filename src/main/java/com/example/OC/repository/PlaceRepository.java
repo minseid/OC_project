@@ -4,6 +4,7 @@ import com.example.OC.constant.PlaceStatus;
 import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Place;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 
 import java.util.Optional;
