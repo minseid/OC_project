@@ -106,7 +106,7 @@ public class PlaceService {
                         .user(targetUser)
                         .place(targetPlace)
                         .build());
-                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 해당 장소를 공유한 사람이 두명이라면 다른사람에가 같이 찾은장소라고 전송
+                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 해당 장소를 공유한 사람이 두명이라면 다른사람에게 같이 찾은장소라고 전송
                 return addPlaceResponse(findService.valid(linkRepository.findByPlace(targetPlace),EntityType.Link),true);
             }
         }
