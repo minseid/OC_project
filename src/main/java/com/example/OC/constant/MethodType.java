@@ -12,6 +12,7 @@ public enum MethodType {
     PlaceDelete(103),
     PlacePick(104),
     PlaceLike(105),
+    PlaceTogether(106),
     ScheduleAdd(201),
     ScheduleEdit(202),
     ScheduleDelete(203),
