@@ -199,12 +199,14 @@ public class MeetingService {
         participants.forEach(participant -> {
             Long fromId = participant.getFromId();
             Long toId = participant.getToId();
+            User toUser = findService.valid(userRepository.findById(toId), EntityType.User);
             participantsResponses.add(GetParticipantsResponse.builder()
                             .fromId(fromId)
                             .fromName(findService.valid(userRepository.findById(fromId), EntityType.User).getName())
                             .toId(toId)
-                            .toName(findService.valid(userRepository.findById(toId), EntityType.User).getName())
+                            .toName(toUser.getName())
                             .status(participant.isStatus())
+                            .toImage(toUser.getProfileImage())
                             .build());
         });
         return participantsResponses;

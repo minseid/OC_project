@@ -19,4 +19,6 @@ public class GetParticipantsResponse {
     private String toName;
 
     private boolean status;
+
+    private String toImage;
 }
