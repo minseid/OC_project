@@ -48,6 +48,7 @@ dependencies {
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 	// 데이터베이스 관련 (H2 & MySQL)
 	runtimeOnly 'com.h2database:h2'
