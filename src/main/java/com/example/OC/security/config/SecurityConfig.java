@@ -38,10 +38,11 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
-                        .requestMatchers("/api/user/signup").permitAll()
-                        .requestMatchers("/api/user/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
+//                        .requestMatchers("/api/user/signup").permitAll()
+//                        .requestMatchers("/api/user/**").hasRole("ADMIN")
+//                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth -> oauth
                         .defaultSuccessUrl("/home")

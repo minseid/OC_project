@@ -6,6 +6,7 @@ import com.example.OC.constant.SendType;
 import com.example.OC.entity.*;
 import com.example.OC.network.fcm.SendDeleteFriendDto;
 import com.example.OC.network.fcm.SendAddMemberDto;
+import com.example.OC.network.response.AddMeetingResponse;
 import com.example.OC.network.response.GetParticipantsResponse;
 import com.example.OC.repository.*;
 import lombok.*;
@@ -59,7 +60,7 @@ public class MeetingService {
     }
 
     //모임 만드는 메서드
-    public Meeting addMeeting(String title, String description, MultipartFile image, Long fromId, List<Long> inviteList ) {
+    public AddMeetingResponse addMeeting(String title, String description, MultipartFile image, Long fromId, List<Long> inviteList ) {
 
         //fromId가 유효한지 확인
         if(userRepository.existsById(fromId)) {
@@ -70,33 +71,43 @@ public class MeetingService {
                     .title(title)
                     .description(description)
                     .link(makeLink())
-                    .image(image.isEmpty()?null:awsS3Service.saveMeetingImage(image, meetingForImage.getId()))
+                    .image(image == null?null:image.isEmpty()?null:awsS3Service.saveMeetingImage(image, meetingForImage.getId()))
                     .finished(false)
                     .build();
             //초대시작
-            inviteList.forEach(toId -> {
-                if(userRepository.existsById(toId)) {
-                    participantRepository.save(Participant.builder()
-                            .meeting(target)
-                            .fromId(fromId)
-                            .toId(toId)
-                            .status(false)
-                            .build());
-                    try {
-                        fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + target.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
+            if(inviteList!=null && !inviteList.isEmpty()){
+                inviteList.forEach(toId -> {
+                    if(userRepository.existsById(toId)) {
+                        participantRepository.save(Participant.builder()
+                                .meeting(target)
+                                .fromId(fromId)
+                                .toId(toId)
+                                .status(false)
+                                .build());
+                        try {
+                            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + target.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
+                        } catch (IOException e) {
+                            throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
+                        }
+                    } else {
+                        throw new IllegalArgumentException("초대를 받는 유저 정보가 올바르지 않습니다! : " + toId);
                     }
-                } else {
-                    throw new IllegalArgumentException("초대를 받는 유저 정보가 올바르지 않습니다! : " + toId);
-                }
-            });
+                });
+            }
             //모임-유저연결
             userMeetingMappingRepository.save(UserMeetingMapping.builder()
                     .meeting(target)
                     .user(findService.valid(userRepository.findById(fromId), EntityType.User))
                     .build());
-            return meetingRepository.save(target);
+            Meeting saved = meetingRepository.save(target);
+            log.info(target.toString());
+            return AddMeetingResponse.builder()
+                    .id(saved.getId())
+                    .title(saved.getTitle())
+                    .description(saved.getDescription())
+                    .link(saved.getLink())
+                    .image(saved.getImage())
+                    .build();
         } else {
             throw new IllegalArgumentException("모임을 만드는 유저 정보가 올바르지 않습니다!");
         }

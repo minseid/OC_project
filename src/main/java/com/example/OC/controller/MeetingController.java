@@ -13,6 +13,7 @@ import com.example.OC.network.response.QuitMeetingResponse;
 import com.example.OC.service.AwsS3Service;
 import com.example.OC.service.FCMService;
 import com.example.OC.service.MeetingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +31,8 @@ public class MeetingController{
 
 
     @PostMapping("/api/meeting")
-    public ResponseEntity<AddMeetingResponse> addMeeting(@RequestPart("data") AddMeetingRequest request, @RequestPart("image") MultipartFile image) {
-        Meeting saved = meetingService.addMeeting(request.getTitle(), request.getDescription(), image, request.getFromId(),request.getParticipants());
-        return ResponseEntity.ok(modelMapper.map(saved, AddMeetingResponse.class));
+    public ResponseEntity<AddMeetingResponse> addMeeting(@Valid @RequestPart("data") AddMeetingRequest request, @RequestPart("image") MultipartFile image) {
+        return ResponseEntity.ok(meetingService.addMeeting(request.getTitle(), request.getDescription(), image, request.getFromId(),request.getParticipants()));
     }
 
     @PutMapping("/api/meeting")

@@ -6,9 +6,13 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/oudi?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: 1234
+#   테스트를 위해 기존 코드 주석처리
+#    url: jdbc:mysql://localhost:3306/oudi?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
+#    username: root
+#    password: 1234
+    url: jdbc:mysql://where-database.c5i8wo8ggixs.ap-northeast-2.rds.amazonaws.com/where_database
+    username: admin
+    password: dream61398
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect

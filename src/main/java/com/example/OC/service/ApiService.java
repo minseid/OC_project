@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class ApiService {
 
-    @Value("${KAKAO_MAP_ACCESS_KEY}")
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String accessKey;
     private final int placeRadius = 50;
 
