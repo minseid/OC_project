@@ -21,7 +21,7 @@ spring:
       hibernate:
         format_sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
   security:
     oauth2:
@@ -60,7 +60,7 @@ spring:
 cloud:
   aws:
     s3:
-      bucket: "audi.image"
+      bucket: "audi-image-s3"
     stack:
       auto: false
     region:

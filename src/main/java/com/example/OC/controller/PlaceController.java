@@ -4,7 +4,6 @@ import com.example.OC.network.request.*;
 import com.example.OC.network.response.*;
 import com.example.OC.service.PlaceService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +13,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlaceController{
 
-    private final ModelMapper modelMapper;
     private final PlaceService placeService;
 
     @PostMapping("/api/place")
     public ResponseEntity<AddPlaceResponse> addPlace(@RequestBody AddPlaceRequest request) {
-        return ResponseEntity.ok(placeService.addPlace(request.getMeetingId(), request.getUserid(), request.getName(), request.getAddress(), request.getNaverLink()));
+        return ResponseEntity.ok(placeService.addPlace(request.getMeetingId(), request.getUserId(), request.getName(), request.getAddress()));
     }
 
     @DeleteMapping("/api/place")

@@ -18,16 +18,19 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> illegalArgumentExceptionHandler(IllegalArgumentException e) {
+        log.error("Illegal 오류 발생 : " + e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
     @ExceptionHandler(IOException.class)
     public ResponseEntity<String> ioExceptionHandler(IOException e) {
+        log.error("IO 오류 발생 : " + e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
+        log.error("MethodArgument 오류 발생");
         StringBuilder messageBuilder = new StringBuilder();
         e.getBindingResult().getAllErrors().forEach(objectError -> {
             messageBuilder.append(objectError.getDefaultMessage()).append("\n");

@@ -51,18 +51,20 @@ public class AwsS3Service {
         return upload(multipartFile, inquiryImgDir, inquiryId);
     }
 
-    public String editMeetingImage(MultipartFile multipartFile, Long meetingId, String link) {
-        delete(link,ImageType.Meeting);
+    public String editMeetingImage(MultipartFile multipartFile, Long meetingId, String imageLink) {
+        if(!(imageLink == null || imageLink.isEmpty())) {
+            delete(imageLink,ImageType.Meeting);
+        }
         return upload(multipartFile, meetingImgDir, meetingId);
     }
 
-    public String editfrofileImage(MultipartFile multipartFile, Long userId, String link) {
-        delete(link,ImageType.Profile);
+    public String editfrofileImage(MultipartFile multipartFile, Long userId, String imageLink) {
+        delete(imageLink,ImageType.Profile);
         return upload(multipartFile, inquiryImgDir, userId);
     }
 
-    public String editInquiryImage(MultipartFile multipartFile, Long inquiryId, String link) {
-        delete(link,ImageType.Inquiry);
+    public String editInquiryImage(MultipartFile multipartFile, Long inquiryId, String imageLink) {
+        delete(imageLink,ImageType.Inquiry);
         return upload(multipartFile, inquiryImgDir, inquiryId);
     }
 
@@ -95,6 +97,7 @@ public class AwsS3Service {
                 amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, splitedLink[0]+"/"+splitedLink[1]+"/"+splitedLink[2].substring(0,36) + URLDecoder.decode(splitedLink[2].substring(36))));
                 break;
             case Meeting:
+                System.out.println(link);
                 targetLink = link.substring(link.indexOf(meetingImgDir));
                 splitedLink = targetLink.split("/");
                 amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, splitedLink[0]+"/"+splitedLink[1]+"/"+splitedLink[2].substring(0,36) + URLDecoder.decode(splitedLink[2].substring(36))));

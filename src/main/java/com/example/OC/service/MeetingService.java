@@ -6,8 +6,7 @@ import com.example.OC.constant.SendType;
 import com.example.OC.entity.*;
 import com.example.OC.network.fcm.SendDeleteFriendDto;
 import com.example.OC.network.fcm.SendAddMemberDto;
-import com.example.OC.network.response.AddMeetingResponse;
-import com.example.OC.network.response.GetParticipantsResponse;
+import com.example.OC.network.response.*;
 import com.example.OC.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +70,7 @@ public class MeetingService {
                     .title(title)
                     .description(description)
                     .link(makeLink())
-                    .image(image == null?null:image.isEmpty()?null:awsS3Service.saveMeetingImage(image, meetingForImage.getId()))
+                    .image((image == null || image.isEmpty())?null:awsS3Service.saveMeetingImage(image, meetingForImage.getId()))
                     .finished(false)
                     .build();
             //초대시작
@@ -114,20 +113,28 @@ public class MeetingService {
     }
 
     //모임 수정하는 메서드
-    public Meeting editMeeting(Long id, String title, String description, MultipartFile image, boolean finished) {
+    public EditMeetingResponse editMeeting(Long id, String title, String description, Long userId, MultipartFile image) {
 
-        if(title==null && description==null && image.isEmpty()) {
+        if(title==null && description==null && (image == null ||image.isEmpty())) {
             throw new IllegalArgumentException("수정사항이 없습니다!");
         }
         //먼저 해당 id로 모임이 존재하는지 확인
         Meeting targetmeeting = findService.valid(meetingRepository.findById(id), EntityType.Meeting);
+        //해당유저가 모임에 속해있는지 확인
+        User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetmeeting)) {
+            throw new IllegalArgumentException("해당 유저는 해당 모임에 속해있지 않습니다!");
+        }
+        if(targetmeeting.isFinished()) {
+            throw new IllegalArgumentException("해당모임은 종료되었습니다!");
+        }
         Meeting target = Meeting.builder()
                 .id(id)
                 .title(title == null? targetmeeting.getTitle():title)
                 .description(description==null?targetmeeting.getDescription():description)
                 .link(targetmeeting.getLink())
                 //이미지를 수정한다면 기존에 있는것은 삭제 후 새로 저장, 이미지 수정이 없다면 그대로
-                .image(image.isEmpty()? targetmeeting.getImage(): awsS3Service.editMeetingImage(image, id, targetmeeting.getLink()))
+                .image(image.isEmpty()? targetmeeting.getImage(): awsS3Service.editMeetingImage(image, id, targetmeeting.getImage()))
                 .finished(targetmeeting.isFinished())
                 .build();
         meetingRepository.save(target);
@@ -148,7 +155,35 @@ public class MeetingService {
             }
         });
          */
-        return target;
+        return EditMeetingResponse.builder()
+                .id(target.getId())
+                .title(target.getTitle())
+                .description(target.getDescription())
+                .link(target.getLink())
+                .image(target.getImage())
+                .build();
+    }
+
+    //모임종료메서드
+    public void finishMeeting(Long meetingId, Long userId) {
+
+        User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        if(targetMeeting.isFinished()) {
+            throw new IllegalArgumentException("해당 모임은 종료되었습니다!");
+        }
+        if(userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
+            meetingRepository.save(Meeting.builder()
+                    .id(targetMeeting.getId())
+                    .title(targetMeeting.getTitle())
+                    .description(targetMeeting.getDescription())
+                    .image(targetMeeting.getImage())
+                    .link(targetMeeting.getLink())
+                    .finished(true)
+                    .build());
+        } else {
+            throw new IllegalArgumentException("해당유저는 해당모임의 구성원이 아닙니다!");
+        }
     }
 
     //모임 탈퇴 메서드
@@ -193,7 +228,9 @@ public class MeetingService {
                 commentRepository.findAllByPlace(place).forEach(commentRepository::delete);
             });
             //일정삭제
-            scheduleRepository.delete(findService.valid(scheduleRepository.findByMeeting(targetMeeting),EntityType.Schedule));
+            if(scheduleRepository.existsByMeeting(targetMeeting)) {
+                scheduleRepository.delete(findService.valid(scheduleRepository.findByMeeting(targetMeeting),EntityType.Schedule));
+            }
             meetingRepository.delete(targetMeeting);
         }
     }
@@ -204,6 +241,9 @@ public class MeetingService {
         List<GetParticipantsResponse> participantsResponses = new ArrayList<>();
         //해당 meetingId 유효한지 검사
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        if(targetMeeting.isFinished()) {
+            throw new IllegalArgumentException("해당 모임은 종료되었습니다!");
+        }
         //해당 모임으로 조회되는 모든 초대 조회
         List<Participant> participants = participantRepository.findAllByMeeting(targetMeeting);
         //초대에서 필요한 정보만 추출
@@ -224,20 +264,34 @@ public class MeetingService {
     }
 
     //해당 유저가 참여중인 모임 조회
-    public List<Meeting> getMeetings(Long userId) {
+    public List<GetMeetingsResponse> getMeetings(Long userId) {
 
         //해당 userId가 유효한지 검사
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        log.warn(targetUser.toString());
         List<UserMeetingMapping> userMeetingMappings = userMeetingMappingRepository.findByUser(targetUser);
+        log.warn(userMeetingMappings.toString());
         /*
         List<Meeting> meetings = new ArrayList<>();
         userMeetingmappings.forEach(userMeetingMapping -> meetings.add(userMeetingMapping.getMeeting()));
         return meetings인데 아래걸로 바꿈 공부하기
          */
         //userMeetingMappings의 모든 모임 추출
-        return userMeetingMappings.stream()
-                .map(UserMeetingMapping::getMeeting)
-                .toList();
+        List<GetMeetingsResponse> meetings = new ArrayList<>();
+        userMeetingMappings.forEach(mapping -> {
+            if(!mapping.getMeeting().isFinished()) {
+                Meeting meeting = mapping.getMeeting();
+                meetings.add(GetMeetingsResponse.builder()
+                        .id(meeting.getId())
+                        .title(meeting.getTitle())
+                        .description(meeting.getDescription())
+                        .link(meeting.getLink())
+                        .image(meeting.getImage())
+                        .finished(meeting.isFinished())
+                        .build());
+            }
+        });
+        return meetings;
     }
 
     //초대생성메서드
@@ -263,12 +317,15 @@ public class MeetingService {
     }
 
     //초대수락메서드
-    public Meeting inviteOk(Long id) {
+    public InviteOkResponse inviteOk(Long id) {
 
         //id 유효한지 검사
         Participant target = findService.valid(participantRepository.findById(id), EntityType.Participant);
         User acceptUser = findService.valid(userRepository.findById(target.getToId()), EntityType.User);
         Meeting targetMeeting = target.getMeeting();
+        if(targetMeeting.isFinished()) {
+            throw new IllegalArgumentException("해당 모임은 종료되었습니다!");
+        }
         //초대상태 변경
         participantRepository.save(Participant.builder()
                 .id(target.getId())
@@ -339,6 +396,13 @@ public class MeetingService {
                 .user(acceptUser)
                 .meeting(targetMeeting)
                 .build());
-        return targetMeeting;
+        return InviteOkResponse.builder()
+                .id(targetMeeting.getId())
+                .title(targetMeeting.getTitle())
+                .description(targetMeeting.getDescription())
+                .link(targetMeeting.getLink())
+                .image(targetMeeting.getImage())
+                .finished(targetMeeting.isFinished())
+                .build();
     }
 }

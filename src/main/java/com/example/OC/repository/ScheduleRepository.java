@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     Optional<Schedule> findByMeeting(Meeting meeting);
+
+    boolean existsByMeeting(Meeting meeting);
 }

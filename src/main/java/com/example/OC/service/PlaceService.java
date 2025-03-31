@@ -70,20 +70,26 @@ public class PlaceService {
     }
 
     //장소를 추가하는 메서드
-    public AddPlaceResponse addPlace(Long meetingId, Long userId, String name, String address, String naverLink) {
+    public AddPlaceResponse addPlace(Long meetingId, Long userId, String name, String address) {
+        log.warn("장소추가시작");
         //각종 id 유효성 확인
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        log.warn(targetMeeting.toString());
+        log.warn("유저찾기시작");
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        log.warn(targetUser.toString());
         if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
             throw new IllegalArgumentException("해당 유저는 해당 모임에 속해있지 않습니다!");
         }
         //카카오맵 api 이용해 해당 장소 정보 검색
         PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
+        log.warn(placeAddressDto.toString());
         //해당 모임과 좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
         List<Place> targetPlaces = placeRepository.findAllByXAndYAndMeeting(placeAddressDto.getX(), placeAddressDto.getY(),targetMeeting);
+        log.warn(targetPlaces.toString());
         if (targetPlaces.isEmpty()) {
             //해당 좌표 기준으로 저장되어있는 장소 없으면 새로 추가
-            return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink),false);
+            return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto),false);
         } else {
             //해당 좌표 기준으로 저장되어 있는 장소 중 이름 겹치는 것으로만 필터
             List<Place> places = targetPlaces.stream()
@@ -91,7 +97,7 @@ public class PlaceService {
                     .toList();
             if (places.isEmpty()) {
                 //해당 이름으로된 장소가 없으므로 새로 추가
-                return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto, naverLink),false);
+                return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto),false);
             } else {
                 //해당 장소가 있으므로 사용자만 추가
                 Place targetPlace = places.get(0);
@@ -137,7 +143,7 @@ public class PlaceService {
                 .build();
     }
 
-    private Link newPlace(User targetUser, Meeting targetMeeting, String name, String address,PlaceAddressDto placeAddressDto, String naverLink ) {
+    private Link newPlace(User targetUser, Meeting targetMeeting, String name, String address,PlaceAddressDto placeAddressDto) {
         //새로운 리스트 만들어서 유저추가후 장소저장
         Place savedPlace = placeRepository.save(Place.builder()
                 .meeting(targetMeeting)
@@ -162,7 +168,7 @@ public class PlaceService {
                                 .address(savedPlace.getAddress())
                                 .likeCount(savedPlace.getLikeCount())
                                 .placeStatus(savedPlace.getPlaceStatus())
-                                .naverLink(naverLink ==null? naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi":naverLink)
+                                .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
                                 .kakaoLink(placeAddressDto.getKakaoLink())
                                 .build(),
                         MethodType.PlaceAdd,SendType.Data);
@@ -170,10 +176,10 @@ public class PlaceService {
                 throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
             }
         });
-        //어떤 지도앱으로 공유했는지 확인후 링크정보 저장
+        //링크정보 저장
         return linkRepository.save(Link.builder()
                 .place(savedPlace)
-                .naverLink(naverLink==null?naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi":naverLink)
+                .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
                 .kakaoLink(placeAddressDto.getKakaoLink())
                 .build());
     }

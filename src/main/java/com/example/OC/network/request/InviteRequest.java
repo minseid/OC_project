@@ -12,13 +12,13 @@ import lombok.*;
 @Builder
 public class InviteRequest {
 
-    @NotNull
+    @NotNull(message = "모임 정보를 입력해주세요!")
     private Long meetingId;
 
-    @NotNull
+    @NotNull(message = "초대하는 유저 정보를 입력해주세요!")
     private Long fromId;
 
-    @NotNull
+    @NotNull(message = "초대받는 유저 정보를 입력해주세요!")
     private Long toId;
 
 }

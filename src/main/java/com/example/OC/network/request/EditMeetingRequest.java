@@ -2,6 +2,7 @@ package com.example.OC.network.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.util.List;
@@ -14,12 +15,13 @@ import java.util.List;
 @Setter
 public class EditMeetingRequest {
 
-    @NotBlank(message = "모임번호를 작성해주세요")
+    @NotNull(message = "모임번호를 작성해주세요")
     private Long id;
 
     private String title;
 
     private String description;
 
-    private boolean finished;
+    @NotNull(message = "유저정보를 입력해주세요")
+    private Long userId;
 }

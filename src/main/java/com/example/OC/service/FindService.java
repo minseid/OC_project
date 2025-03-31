@@ -5,7 +5,6 @@ import com.example.OC.entity.*;
 import com.example.OC.repository.*;
 import jakarta.persistence.MappedSuperclass;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
@@ -26,7 +25,7 @@ public class FindService {
                     message = "친구정보를 올바르게 입력해주세요!";
                     break;
                 case Inquiry:
-
+                    message = "1:1정보를 올바르게 입력해주세요!";
                     break;
                 case Link:
 
@@ -35,16 +34,16 @@ public class FindService {
                     message = "모임정보를 올바르게 입력해주세요!";
                     break;
                 case Notice:
-
+                    message = "공지/FAQ정보를 올바르게 입력해주세요!";
                     break;
                 case Participant:
-
+                    message = "초대정보를 올바르게 입력해주세요!";
                     break;
                 case Place:
                     message = "장소정보를 올바르게 입력해주세요!";
                     break;
                 case Schedule:
-
+                    message = "일정정보를 올바르게 입력해주세요!";
                     break;
                 case User:
                     message = "유저정보를 올바르게 입력해주세요!";
@@ -55,7 +54,7 @@ public class FindService {
                 default:
                     break;
             }
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(message);
         } else {
             return target.get();
         }

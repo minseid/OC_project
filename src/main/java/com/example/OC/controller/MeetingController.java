@@ -2,20 +2,14 @@ package com.example.OC.controller;
 
 import com.example.OC.entity.Meeting;
 import com.example.OC.entity.Participant;
-import com.example.OC.network.request.AddMeetingRequest;
-import com.example.OC.network.request.EditMeetingRequest;
-import com.example.OC.network.request.InviteRequest;
-import com.example.OC.network.request.QuitMeetingRequest;
-import com.example.OC.network.response.AddMeetingResponse;
-import com.example.OC.network.response.EditMeetingResponse;
-import com.example.OC.network.response.GetParticipantsResponse;
-import com.example.OC.network.response.QuitMeetingResponse;
+import com.example.OC.network.request.*;
+import com.example.OC.network.response.*;
 import com.example.OC.service.AwsS3Service;
 import com.example.OC.service.FCMService;
 import com.example.OC.service.MeetingService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +21,6 @@ import java.util.List;
 public class MeetingController{
 
     private final MeetingService meetingService;
-    private final ModelMapper modelMapper;
 
 
     @PostMapping("/api/meeting")
@@ -36,13 +29,18 @@ public class MeetingController{
     }
 
     @PutMapping("/api/meeting")
-    public ResponseEntity<EditMeetingResponse> editMeeting(@RequestPart("data") EditMeetingRequest request, @RequestPart("image") MultipartFile image) {
-        Meeting updated = meetingService.editMeeting(request.getId(),request.getTitle(),request.getDescription(),image,request.isFinished());
-        return ResponseEntity.ok(modelMapper.map(updated, EditMeetingResponse.class));
+    public ResponseEntity<EditMeetingResponse> editMeeting(@Valid @RequestPart("data") EditMeetingRequest request, @RequestPart("image") MultipartFile image) {
+        return ResponseEntity.ok(meetingService.editMeeting(request.getId(),request.getTitle(),request.getDescription(), request.getUserId(), image));
+    }
+
+    @PutMapping("/api/meeting/finish")
+    public ResponseEntity<Void> finishMeeting(@Valid @RequestBody FinishMeetingRequest request) {
+        meetingService.finishMeeting(request.getId(), request.getUserId());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/api/meeting")
-    public ResponseEntity<QuitMeetingResponse> quitMeeting(@RequestBody QuitMeetingRequest request) {
+    public ResponseEntity<QuitMeetingResponse> quitMeeting(@Valid @RequestBody QuitMeetingRequest request) {
         meetingService.quitMeeting(request.getUserId(), request.getId());
         return ResponseEntity.ok().build();
     }
@@ -54,19 +52,18 @@ public class MeetingController{
     }
 
     @GetMapping("/api/meeting/{id}")
-    public ResponseEntity<List<Meeting>> getMeetings(@PathVariable("id") Long userId) {
-        List<Meeting> meetings = meetingService.getMeetings(userId);
-        return ResponseEntity.ok(meetings);
+    public ResponseEntity<List<GetMeetingsResponse>> getMeetings(@PathVariable("id") Long userId) {
+        return ResponseEntity.ok(meetingService.getMeetings(userId));
     }
 
     @PostMapping("/api/meeting/invite")
-    public ResponseEntity<Void> inviteMeeting(@RequestBody InviteRequest request) {
+    public ResponseEntity<Void> inviteMeeting(@Valid @RequestBody InviteRequest request) {
         meetingService.addParticipant(request.getMeetingId(), request.getFromId(), request.getToId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/meeting/invite/ok")
-    public ResponseEntity<Meeting> inviteOk(@RequestBody Long id) {
-        return ResponseEntity.ok(meetingService.inviteOk(id));
+    public ResponseEntity<InviteOkResponse> inviteOk(@Valid @RequestBody InviteOkRequest request) {
+        return ResponseEntity.ok(meetingService.inviteOk(request.getId()));
     }
 }
