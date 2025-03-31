@@ -15,4 +15,6 @@ public interface UserPlaceMappingRepository extends JpaRepository<UserPlaceMappi
     Optional<UserPlaceMapping> findByUserAndPlace(User user, Place place);
 
     boolean existsByUserAndPlace(User user, Place place);
+
+    void deleteAllByPlace(Place place);
 }

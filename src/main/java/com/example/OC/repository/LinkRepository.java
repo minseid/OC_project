@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface LinkRepository extends JpaRepository<Link, Long> {
 
     Optional<Link> findByPlace (Place place);
+
+    void deleteByPlace(Place place);
 }

@@ -22,7 +22,7 @@ public class FCMMessageDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Message {
         private Notification notification;
-        private Map<String,Object> data;
+        private Map<String, Object> data;
         private String token;
     }
 

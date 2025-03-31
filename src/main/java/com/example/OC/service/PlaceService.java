@@ -160,6 +160,7 @@ public class PlaceService {
                 .build());
         //모임구성원들에게 새로운 장소추가정보 전송
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
+            log.warn(userMeetingMapping.toString());
             try {
                 fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendAddPlaceDto.builder()
                                 .meetingId(targetMeeting.getId())

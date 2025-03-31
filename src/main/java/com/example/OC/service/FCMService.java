@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.hibernate.type.descriptor.java.ObjectJavaType;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class FCMService {
 
 
@@ -53,7 +55,7 @@ public class FCMService {
             case Notification -> makeNotification(targetToken, title, body);
             default -> makeNotiAndData(targetToken, title, body, dataObject,methodType);
         };
-
+        log.warn(message);
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
@@ -88,15 +90,14 @@ public class FCMService {
     public String makeData(String targetToken, Object dataObject, MethodType methodType) throws JsonProcessingException {
 
         Map<String, Object> dataMap = objectMapper.convertValue(dataObject,Map.class);
-
+        dataMap.replaceAll((key, value) -> String.valueOf(value));
         Map<String, Object> wrappedMap = new HashMap<>();
-        wrappedMap.put("code", methodType.getCode());
-        wrappedMap.put("data", dataMap);
-
-
+        wrappedMap.put("code", String.valueOf(methodType.getCode()));
+        wrappedMap.putAll(dataMap);
         FCMMessageDto fcmMessageDto = FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
                         .token(targetToken)
+                        .notification(null)
                         .data(wrappedMap)
                         .build())
                 .validate_only(false)
@@ -108,7 +109,7 @@ public class FCMService {
     public String makeNotiAndData(String targetToken, String title, String body, Object dataObject, MethodType methodType) throws JsonProcessingException {
 
         Map<String, Object> dataMap = objectMapper.convertValue(dataObject,Map.class);
-
+        dataMap.replaceAll((key, value) -> String.valueOf(value));
         Map<String, Object> wrappedMap = new HashMap<>();
         wrappedMap.put("code", methodType.getCode());
         wrappedMap.put("data", dataMap);

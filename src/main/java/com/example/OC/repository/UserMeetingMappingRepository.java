@@ -17,4 +17,5 @@ public interface UserMeetingMappingRepository extends JpaRepository<UserMeetingM
     List<UserMeetingMapping> findAllByMeeting(Meeting meeting);
 
     boolean existsByUserAndMeeting(User user, Meeting meeting);
+
 }

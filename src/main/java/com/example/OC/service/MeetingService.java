@@ -8,13 +8,16 @@ import com.example.OC.network.fcm.SendDeleteFriendDto;
 import com.example.OC.network.fcm.SendAddMemberDto;
 import com.example.OC.network.response.*;
 import com.example.OC.repository.*;
+import com.example.OC.util.Pair;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -36,6 +39,69 @@ public class MeetingService {
     private final FriendRepository friendRepository;
 
     private final String linkForInvite = "https://www.audi.com/";
+    private final LinkRepository linkRepository;
+    private final UserPlaceMappingRepository userPlaceMappingRepository;
+
+    //매일 00시마다 모임종료3개월 이상은 삭제
+    @Scheduled(cron = "0 8 0 * * ?")
+    public void deleteExpiredMeetings() {
+        log.info("모임종료3개월이상 모임 삭제 진행");
+        List<Meeting> targetMeetings = meetingRepository.findAllByFinishedIsTrueAndUpdatedAtBefore(LocalDateTime.now().minusMonths(3l));
+        targetMeetings.forEach(meeting -> {
+            //해당 모임에 있는 구성원들 전부 조회후 친구에서 meetings안에서 해당 meetingId 제거
+            List<UserMeetingMapping> targetMapping =  userMeetingMappingRepository.findAllByMeeting(meeting);
+            List<User> users = targetMapping.stream().map(UserMeetingMapping::getUser).toList();
+            //구성원정보 삭제
+            targetMapping.forEach(userMeetingMappingRepository::delete);
+            //구성원이 2명 이상일때만 친구에서 모임내역삭제
+            if(users.size() > 1) {
+                //구성원들로 구성된 combination 생성(nCr 형식)
+                List<Pair<User, User>> userPairs = new ArrayList<>();
+                for (int i = 0; i < users.size(); i++) {
+                    for (int j = i + 1; j < users.size(); j++) { // j = i + 1로 중복 제거
+                        userPairs.add(new Pair<>(users.get(i), users.get(j))); // 사용자 간의 쌍 추가
+                    }
+                }
+                userPairs.forEach(pair -> {
+                    Optional<Friend> friends = friendRepository.findByUserSet(pair.getFirst().getId(), pair.getSecond().getId());
+                    if(friends.isPresent()) {
+                        //해당 친구목록에서 만난모임에 해당 모임이 있는지 확인
+                        if(friends.get().getMeets().contains(meeting.getId())) {
+                            friends.get().getMeets().remove(meeting.getId());
+                            //친구에서 만난모임이 해당 모임만 있다면 친구삭제
+                            if(friends.get().getMeets().isEmpty()) {
+                                friendRepository.delete(friends.get());
+                            } else {
+                                friendRepository.save(friends.get());
+                            }
+                        } else {
+                            log.error("친구목록에 해당 모임이 없습니다.");
+                        }
+                    }
+                });
+            }
+            //초대삭제
+            participantRepository.findAllByMeeting(meeting).forEach(participantRepository::delete);
+            //장소삭제전에 장소와 관련된 모든 데이터 삭제
+            placeRepository.findAllByMeeting(meeting).forEach(place -> {
+                //코멘트삭제
+                commentRepository.findAllByPlace(place).forEach(commentRepository::delete);
+                //링크삭제
+                linkRepository.deleteByPlace(place);
+                //장소-유저매핑삭제
+                userPlaceMappingRepository.deleteAllByPlace(place);
+                //장소삭제
+                placeRepository.delete(place);
+            });
+            //일정삭제
+            if(scheduleRepository.existsByMeeting(meeting)) {
+                scheduleRepository.delete(scheduleRepository.findByMeeting(meeting).get());
+            }
+            //모임삭제
+            meetingRepository.delete(meeting);
+        });
+        log.info("모임종료3개월이상 모임 삭제 완료 : " + targetMeetings.size() + "개");
+    }
 
     //모임 초대용 링크 만드는 메서드
     private String makeLink(){
@@ -167,8 +233,10 @@ public class MeetingService {
     //모임종료메서드
     public void finishMeeting(Long meetingId, Long userId) {
 
+        //id 유효성확인
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        //모임이 종료되었으면 오류세메지 전송
         if(targetMeeting.isFinished()) {
             throw new IllegalArgumentException("해당 모임은 종료되었습니다!");
         }
@@ -189,10 +257,13 @@ public class MeetingService {
     //모임 탈퇴 메서드
     public void quitMeeting(Long userId, Long meetingId) {
 
-        //모임 구성원삭제
-        userMeetingMappingRepository.delete(findService.valid(userMeetingMappingRepository.findByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting)),EntityType.UserMeetingMapping));
         //모임 id 유효성검사
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        if(targetMeeting.isFinished()) {
+            throw new IllegalArgumentException("해당 모임은 종료되었습니다!");
+        }
+        //모임 구성원삭제
+        userMeetingMappingRepository.delete(findService.valid(userMeetingMappingRepository.findByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting)),EntityType.UserMeetingMapping));
         //친구목록에서 모임삭제
         friendRepository.findAllByU1OrU2(userId,userId).forEach(friend -> {
             List<Long> meets = friend.getMeets();
@@ -224,8 +295,14 @@ public class MeetingService {
             participantRepository.findAllByMeeting(targetMeeting).forEach(participantRepository::delete);
             //장소삭제전에 장소와 관련된 모든 데이터 삭제
             placeRepository.findAllByMeeting(targetMeeting).forEach(place -> {
-                //장소와 관련된 코멘트 삭제
+                //코멘트 삭제
                 commentRepository.findAllByPlace(place).forEach(commentRepository::delete);
+                //링크삭제
+                linkRepository.deleteByPlace(place);
+                //장소-유저매핑삭제
+                userPlaceMappingRepository.deleteAllByPlace(place);
+                //장소삭제
+                placeRepository.delete(place);
             });
             //일정삭제
             if(scheduleRepository.existsByMeeting(targetMeeting)) {
@@ -263,24 +340,16 @@ public class MeetingService {
         return participantsResponses;
     }
 
-    //해당 유저가 참여중인 모임 조회
+    //해당 유저가 참여중인 모임 조회 매서드
     public List<GetMeetingsResponse> getMeetings(Long userId) {
 
         //해당 userId가 유효한지 검사
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
-        log.warn(targetUser.toString());
         List<UserMeetingMapping> userMeetingMappings = userMeetingMappingRepository.findByUser(targetUser);
-        log.warn(userMeetingMappings.toString());
-        /*
-        List<Meeting> meetings = new ArrayList<>();
-        userMeetingmappings.forEach(userMeetingMapping -> meetings.add(userMeetingMapping.getMeeting()));
-        return meetings인데 아래걸로 바꿈 공부하기
-         */
-        //userMeetingMappings의 모든 모임 추출
         List<GetMeetingsResponse> meetings = new ArrayList<>();
         userMeetingMappings.forEach(mapping -> {
-            if(!mapping.getMeeting().isFinished()) {
-                Meeting meeting = mapping.getMeeting();
+            Meeting meeting = mapping.getMeeting();
+            if(!meeting.isFinished()||(meeting.isFinished() && LocalDateTime.now().minusMonths(3l).isBefore(meeting.getUpdatedAt()))) {
                 meetings.add(GetMeetingsResponse.builder()
                         .id(meeting.getId())
                         .title(meeting.getTitle())

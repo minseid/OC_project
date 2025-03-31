@@ -18,6 +18,9 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     Optional<Friend> findByU1AndU2(Long u1, Long u2);
 
+    @Query("SELECT f From Friend f WHERE (f.u1= :u1 AND f.u2= :u2) OR (f.u1= :u2 AND f.u2= :u1)")
+    Optional<Friend> findByUserSet(@Param("u1")Long u1, @Param("u2") Long u2);
+
     boolean existsByU1AndU2(Long u1, Long u2);
 
     void deleteByU1AndU2(Long u1, Long u2);
