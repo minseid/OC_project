@@ -39,7 +39,6 @@ dependencies {
 
 	// 웹 관련 (Spring MVC & Servlet 포함)
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 	implementation 'org.modelmapper:modelmapper:3.2.2'
 

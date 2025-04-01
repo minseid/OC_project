@@ -6,18 +6,18 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://database-1.csleqqg6yygv.us-east-1.rds.amazonaws.com/
+    url: jdbc:mysql://where-db1.c3sewig4iszd.ap-northeast-2.rds.amazonaws.com:3306/where_db
     username: admin
     password: ${RDS_PASSWORD}
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect/
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
     properties:
       hibernate:
         format_sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
   security:
     oauth2:
@@ -56,7 +56,7 @@ spring:
 cloud:
   aws:
     s3:
-      bucket: "audi-image-s3"
+      bucket: "where-bucket32"
     stack:
       auto: false
     region:
@@ -66,7 +66,13 @@ cloud:
       secret-key: ${AWS_S3_SECRET_KEY}
 
 server:
-  port: 8080
+  port: 443
+  ssl:
+    enabled: true
+    key-store: /home/ubuntu/keystore.p12
+    key-store-password: ${SSL_PASSWORD}
+    key-store-type: PKCS12
+  forward-headers-strategy: native
 
 logging:
   level:

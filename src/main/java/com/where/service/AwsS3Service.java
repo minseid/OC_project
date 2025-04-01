@@ -57,13 +57,17 @@ public class AwsS3Service {
         return upload(multipartFile, meetingImgDir, meetingId);
     }
 
-    public String editfrofileImage(MultipartFile multipartFile, Long userId, String imageLink) {
-        delete(imageLink,ImageType.Profile);
+    public String editProfileImage(MultipartFile multipartFile, Long userId, String imageLink) {
+        if(!(imageLink == null || imageLink.isEmpty())) {
+            delete(imageLink,ImageType.Profile);
+        }
         return upload(multipartFile, inquiryImgDir, userId);
     }
 
     public String editInquiryImage(MultipartFile multipartFile, Long inquiryId, String imageLink) {
-        delete(imageLink,ImageType.Inquiry);
+        if(!(imageLink == null || imageLink.isEmpty())) {
+            delete(imageLink,ImageType.Inquiry);
+        }
         return upload(multipartFile, inquiryImgDir, inquiryId);
     }
 

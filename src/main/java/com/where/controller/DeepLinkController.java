@@ -25,4 +25,5 @@ public class DeepLinkController {
         Resource resource = new ClassPathResource("static/wellknown/assetlinks.json");
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resource);
     }
+
 }

@@ -21,19 +21,19 @@ public class PlaceController{
     }
 
     @DeleteMapping("/api/place")
-    public ResponseEntity<Void> deletePlace(@RequestBody Long id) {
-        placeService.deletePlace(id);
+    public ResponseEntity<Void> deletePlace(@RequestBody CommonIdAndUserRequest request) {
+        placeService.deletePlace(request.getId(), request.getUserId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/place/pick")
-    public ResponseEntity<PickPlaceResponse> pickPlace(@RequestBody Long id) {
-        return ResponseEntity.ok(placeService.pickPlace(id));
+    public ResponseEntity<PickPlaceResponse> pickPlace(@RequestBody CommonIdAndUserRequest request) {
+        return ResponseEntity.ok(placeService.pickPlace(request.getId(), request.getUserId()));
     }
 
     @PostMapping("/api/place/like")
     public ResponseEntity<PickPlaceResponse> likePlace(@RequestBody LikePlaceRequest request) {
-        return ResponseEntity.ok(placeService.likePlace(request.getId(), request.isLike()));
+        return ResponseEntity.ok(placeService.likePlace(request.getId(), request.isLike(), request.getUserId()));
     }
 
     @PostMapping("/api/place/comment")

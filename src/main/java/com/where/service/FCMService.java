@@ -47,6 +47,9 @@ public class FCMService {
 
     public void sendMessageToken(Long userId, String title, String body, Object dataObject, MethodType methodType, SendType sendType) throws IOException {
         String targetToken = findService.valid(userRepository.findById(userId), EntityType.User).getFcmKey();
+        if(targetToken==null || targetToken.isEmpty()) {
+            return;
+        }
         String message = switch (sendType) {
             case Data -> makeData(targetToken, dataObject, methodType);
             case Notification -> makeNotification(targetToken, title, body);

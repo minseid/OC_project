@@ -446,7 +446,7 @@ public class MeetingService {
                         .build());
                 //새로운 친구이므로 상대방에게 푸시알림 전송
                 try {
-                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),"친구 추가", acceptUser.getName() + "님이 " + userMeetingMapping.getUser().getName() + "님을 친구로 추가하셨어요.", null, null, SendType.Notification);
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),"친구 추가", acceptUser.getNickName() + "님이 " + userMeetingMapping.getUser().getNickName() + "님을 친구로 추가하셨어요.", null, null, SendType.Notification);
                 } catch (IOException e) {
                     throw new IllegalArgumentException("푸시알림 전송실패! : " + e.getMessage());
                 }
