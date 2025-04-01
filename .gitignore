@@ -39,6 +39,6 @@ out/
 ### Custom ###
 **/firebase
 **.env
-**/admin.pem
+**.pem
 /src/main/resources/static/wellknown/apple-app-site-association
 /src/main/resources/static/wellknown/assetlinks.json
