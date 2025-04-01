@@ -40,6 +40,5 @@ out/
 **/firebase
 **.env
 **/admin.pem
-**/apple-app-site-association
-**/assetlinks.json
-**/wellknown
+/src/main/resources/static/wellknown/apple-app-site-association
+/src/main/resources/static/wellknown/assetlinks.json
