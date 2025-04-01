@@ -1,27 +1,23 @@
 spring:
   application:
-    name: OC
+    name: Where
   jwt:
     secret: ${JWT_SECRET}
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-#   테스트를 위해 기존 코드 주석처리
-#    url: jdbc:mysql://localhost:3306/oudi?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
-#    username: root
-#    password: 1234
-    url: jdbc:mysql://where-database.c5i8wo8ggixs.ap-northeast-2.rds.amazonaws.com/where_database
+    url: jdbc:mysql://database-1.csleqqg6yygv.us-east-1.rds.amazonaws.com/
     username: admin
-    password: dream61398
+    password: ${RDS_PASSWORD}
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect/
     show-sql: true
     properties:
       hibernate:
         format_sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 
   security:
     oauth2:
@@ -78,5 +74,3 @@ logging:
 
 dotenv:
   enabled: true
-
-KAKAO_MAP_ACCESS_KEY: ${KAKAO_MAP_ACCESS_KEY}

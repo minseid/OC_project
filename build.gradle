@@ -5,7 +5,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
-group = 'com.example'
+group = 'com.where'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -39,6 +39,7 @@ dependencies {
 
 	// 웹 관련 (Spring MVC & Servlet 포함)
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 	implementation 'org.modelmapper:modelmapper:3.2.2'
 
