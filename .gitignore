@@ -40,5 +40,4 @@ out/
 **/firebase
 **.env
 **/admin.pem
-**/apple-app-site-association
-**/assetlinks.json
+**/resources/static/wellknown/
