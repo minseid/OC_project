@@ -46,7 +46,7 @@ public class FriendService {
                         .date(targetMeeting.getUpdatedAt().toLocalDate())
                         .build());
             });
-            //해당유저id가 U1에 있는지 U2에 있는지 모름
+            //해당유저 id가 U1에 있는지 U2에 있는지 모름
             User targetUser = null;
             if(friend.getU1()==id) {
                 targetUser = findService.valid(userRepository.findById(friend.getU2()), EntityType.User);
@@ -55,7 +55,7 @@ public class FriendService {
             }
             responses.add(GetFriendResponse.builder()
                     .friendId(targetUser.getId())
-                    .friendName(targetUser.getName())
+                    .friendName(targetUser.getNickName())
                     .friendImage(targetUser.getProfileImage())
                     .meetingDetail(data)
                     .build());

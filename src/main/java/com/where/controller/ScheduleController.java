@@ -34,7 +34,7 @@ public class ScheduleController {
 
     @DeleteMapping("/api/schedule")
     public ResponseEntity<Void> deleteSchedule(@RequestBody DeleteScheduleRequest request) {
-        scheduleService.deleteSchedule(request.getMeetingId());
+        scheduleService.deleteSchedule(request.getMeetingId(), request.getUserId());
         return ResponseEntity.ok().build();
     }
 

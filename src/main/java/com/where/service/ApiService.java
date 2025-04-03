@@ -59,7 +59,7 @@ public class ApiService {
                 .x((float)(Math.floor((Float.parseFloat(x)*1000)/1000.0)))
                 .y((float)(Math.floor((Float.parseFloat(y)*1000)/1000.0)))
                 .detailAddress(roadAddressNode.path("region_2depth_name").asText() + " " + roadAddressNode.path("region_3depth_name").asText())
-                .kakaoLink("kakaomap://place?id=" + URLEncoder.encode(rootNode.path("documents").get(0).path("id").asText()))
+                .kakaoLink(rootNode.path("documents").isEmpty() ? "kakaomap://search?q=" + URLEncoder.encode(placeName) + "&p=" + x + "," + y : "kakaomap://place?id=" + URLEncoder.encode(rootNode.path("documents").get(0).path("id").asText()))
                 .build();
     }
 }

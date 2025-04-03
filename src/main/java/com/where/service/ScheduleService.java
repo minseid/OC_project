@@ -119,21 +119,26 @@ public class ScheduleService {
     }
 
     //일정삭제메서드
-    public void deleteSchedule(Long id) {
+    public void deleteSchedule(Long id, Long userId) {
         
         //id 유효성 검증
+        User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         Schedule target = findService.valid(scheduleRepository.findByMeeting(findService.valid(meetingRepository.findById(id),EntityType.Meeting)), EntityType.Schedule);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, target.getMeeting())) {
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
         scheduleRepository.delete(target);
-        
         //모임구성원에게 전송
         userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).forEach(userMeetingMapping -> {
-            try {
-                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendDeleteScheduleDto.builder()
-                        .meetingId(target.getMeeting().getId())
-                        .build(),
-                        MethodType.ScheduleDelete, SendType.Data);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("실시간 데이터 전송실패! : " + e.getMessage());
+            if(!userMeetingMapping.getUser().equals(targetUser)) {
+                try {
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendDeleteScheduleDto.builder()
+                                    .meetingId(target.getMeeting().getId())
+                                    .build(),
+                            MethodType.ScheduleDelete, SendType.Data);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("실시간 데이터 전송실패! : " + e.getMessage());
+                }
             }
         });
     }

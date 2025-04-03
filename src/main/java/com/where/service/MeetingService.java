@@ -375,6 +375,9 @@ public class MeetingService {
         findService.valid(userRepository.findById(toId), EntityType.User);
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
         //초대생성
+        if(participantRepository.existsByMeetingIdAndFromIdAndToId(meetingId, fromId, toId)) {
+            throw new IllegalArgumentException("이미 초대를 했습니다!");
+        }
         Participant saved = participantRepository.save(Participant.builder()
                 .meeting(targetMeeting)
                 .fromId(fromId)
