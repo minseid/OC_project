@@ -25,4 +25,6 @@ public class EditScheduleRequest {
     @JsonFormat(pattern = "HH:mm")
     private LocalTime time;
 
+    @NotNull(message = "유저 정보를 입력해주세요!")
+    private Long userId;
 }

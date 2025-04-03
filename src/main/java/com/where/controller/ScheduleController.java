@@ -17,9 +17,9 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
 
-    @PostMapping("/api/schedule/add")
+    @PostMapping("/api/schedule")
     public ResponseEntity<AddScheduleResponse> addSchedule(@RequestBody AddScheduleRequest request) {
-        return ResponseEntity.ok(scheduleService.addSchedule(request.getMeetingId(), request.getDate(), request.getTime()));
+        return ResponseEntity.ok(scheduleService.addSchedule(request.getMeetingId(), request.getDate(), request.getTime(), request.getUserId()));
     }
 
     @GetMapping("/api/schedule/{id}")
@@ -27,12 +27,12 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.getSchedule(id));
     }
 
-    @PutMapping("/api/schedule/edit")
+    @PutMapping("/api/schedule")
     public ResponseEntity<EditScheduleResponse> editSchedule(@RequestBody EditScheduleRequest request) {
-        return ResponseEntity.ok(scheduleService.editSchedule(request.getMeetingId(), request.getDate(), request.getTime()));
+        return ResponseEntity.ok(scheduleService.editSchedule(request.getMeetingId(), request.getDate(), request.getTime(), request.getUserId()));
     }
 
-    @DeleteMapping("/api/schedule/delete")
+    @DeleteMapping("/api/schedule")
     public ResponseEntity<Void> deleteSchedule(@RequestBody DeleteScheduleRequest request) {
         scheduleService.deleteSchedule(request.getMeetingId());
         return ResponseEntity.ok().build();
