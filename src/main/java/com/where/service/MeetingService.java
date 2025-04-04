@@ -9,6 +9,8 @@ import com.where.network.fcm.SendDeleteFriendDto;
 import com.where.network.response.*;
 import com.where.repository.*;
 import com.where.util.Pair;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,6 +30,9 @@ import java.util.Random;
 @RequiredArgsConstructor
 @Slf4j
 public class MeetingService {
+
+    @PersistenceContext
+    private EntityManager em;
     
     private final FindService findService;
     private final AwsS3Service awsS3Service;
@@ -133,7 +138,7 @@ public class MeetingService {
         //fromId가 유효한지 확인
         if(userRepository.existsById(fromId)) {
             //이미지 저장할때 meetingId가 필요한데 id를 DB에서 자동관리하므로 하나 생성하고 그 엔티티를 수정하는 방식을 사용
-            Meeting meetingForImage = meetingRepository.save(Meeting.builder().title(title).description(description).finished(false).build());
+            Meeting meetingForImage = meetingRepository.saveAndFlush(Meeting.builder().title(title).description(description).finished(false).build());
             Meeting target = Meeting.builder()
                     .id(meetingForImage.getId())
                     .title(title)
@@ -167,8 +172,9 @@ public class MeetingService {
                     .meeting(target)
                     .user(findService.valid(userRepository.findById(fromId), EntityType.User))
                     .build());
-            Meeting saved = meetingRepository.save(target);
-            log.info(target.toString());
+            Meeting saved = meetingRepository.saveAndFlush(target);
+            em.refresh(saved);
+            log.warn(saved.toString());
             return AddMeetingResponse.builder()
                     .id(saved.getId())
                     .title(saved.getTitle())
@@ -273,12 +279,6 @@ public class MeetingService {
             List<Long> meets = friend.getMeets();
             meets.removeIf(id -> id==meetingId);
             if(meets.isEmpty()) {
-                //친구목록에서 겹친 모임이 해당모임만 있다면 친구도 삭제
-                try {
-                    fcmService.sendMessageToken(friend.getU1()==userId?friend.getU2():userId,null,null, SendDeleteFriendDto.builder().userId(userId).build(),MethodType.FriendDelete,SendType.Data);
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("실시간 데이터 전송 실패! : "+e.getMessage());
-                }
                 friendRepository.delete(friend);
             } else {
                 //다른모임도 있다면 해당 모임만 삭제
@@ -335,9 +335,9 @@ public class MeetingService {
             User toUser = findService.valid(userRepository.findById(toId), EntityType.User);
             participantsResponses.add(GetParticipantsResponse.builder()
                             .fromId(fromId)
-                            .fromName(findService.valid(userRepository.findById(fromId), EntityType.User).getName())
+                            .fromName(findService.valid(userRepository.findById(fromId), EntityType.User).getNickName())
                             .toId(toId)
-                            .toName(toUser.getName())
+                            .toName(toUser.getNickName())
                             .status(participant.isStatus())
                             .toImage(toUser.getProfileImage())
                             .build());
@@ -354,15 +354,32 @@ public class MeetingService {
         List<GetMeetingsResponse> meetings = new ArrayList<>();
         userMeetingMappings.forEach(mapping -> {
             Meeting meeting = mapping.getMeeting();
-            meetings.add(GetMeetingsResponse.builder()
-                    .id(meeting.getId())
-                    .title(meeting.getTitle())
-                    .description(meeting.getDescription())
-                    .link(meeting.getLink())
-                    .image(meeting.getImage())
-                    .finished(meeting.isFinished())
-                    .createdAt(meeting.getCreatedAt())
-                    .build());
+            if(scheduleRepository.existsByMeeting(meeting)) {
+                Schedule schedule = scheduleRepository.findByMeeting(meeting).get();
+                meetings.add(GetMeetingsResponse.builder()
+                        .id(meeting.getId())
+                        .title(meeting.getTitle())
+                        .description(meeting.getDescription())
+                        .link(meeting.getLink())
+                        .image(meeting.getImage())
+                        .finished(meeting.isFinished())
+                        .createdAt(meeting.getCreatedAt())
+                        .scheduleDate(schedule.getDate())
+                        .scheduleTime(schedule.getTime())
+                        .build());
+            } else {
+                meetings.add(GetMeetingsResponse.builder()
+                        .id(meeting.getId())
+                        .title(meeting.getTitle())
+                        .description(meeting.getDescription())
+                        .link(meeting.getLink())
+                        .image(meeting.getImage())
+                        .finished(meeting.isFinished())
+                        .createdAt(meeting.getCreatedAt())
+                        .scheduleDate(null)
+                        .scheduleTime(null)
+                        .build());
+            }
         });
         return meetings;
     }
@@ -460,15 +477,31 @@ public class MeetingService {
                 .user(acceptUser)
                 .meeting(targetMeeting)
                 .build());
-        return InviteOkResponse.builder()
-                .id(targetMeeting.getId())
-                .title(targetMeeting.getTitle())
-                .description(targetMeeting.getDescription())
-                .link(targetMeeting.getLink())
-                .image(targetMeeting.getImage())
-                .finished(targetMeeting.isFinished())
-                .createdAt(targetMeeting.getCreatedAt())
-                .build();
+        if(scheduleRepository.existsByMeeting(targetMeeting)) {
+            Schedule schedule = scheduleRepository.findByMeeting(targetMeeting).get();
+            return InviteOkResponse.builder()
+                    .id(targetMeeting.getId())
+                    .title(targetMeeting.getTitle())
+                    .description(targetMeeting.getDescription())
+                    .link(targetMeeting.getLink())
+                    .image(targetMeeting.getImage())
+                    .finished(targetMeeting.isFinished())
+                    .createdAt(targetMeeting.getCreatedAt())
+                    .scheduleDate(schedule.getDate())
+                    .scheduleTime(schedule.getTime())
+                    .build();
+        } else {
+            return InviteOkResponse.builder()
+                    .id(targetMeeting.getId())
+                    .title(targetMeeting.getTitle())
+                    .description(targetMeeting.getDescription())
+                    .link(targetMeeting.getLink())
+                    .image(targetMeeting.getImage())
+                    .finished(targetMeeting.isFinished())
+                    .createdAt(targetMeeting.getCreatedAt())
+                    .build();
+        }
+
     }
 
     //링크초대수락메서드

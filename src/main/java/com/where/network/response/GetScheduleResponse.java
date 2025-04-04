@@ -14,8 +14,6 @@ import java.time.LocalTime;
 @NoArgsConstructor
 public class GetScheduleResponse {
 
-    private Long meetingId;
-
     private LocalDate date;
 
     @JsonFormat(pattern = "HH:mm")

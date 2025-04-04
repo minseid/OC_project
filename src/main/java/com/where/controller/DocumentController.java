@@ -1,9 +1,6 @@
 package com.where.controller;
 
-import com.where.network.request.AddAnswerRequest;
-import com.where.network.request.AddInquiryRequest;
-import com.where.network.request.AddNoticeRequest;
-import com.where.network.request.EditNoticeRequest;
+import com.where.network.request.*;
 import com.where.network.response.*;
 import com.where.service.DocumentService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +22,7 @@ public class DocumentController {
     }
 
     @PostMapping("/api/inquiry")
-    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") AddInquiryRequest request, @RequestPart List<MultipartFile> file) {
+    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") AddInquiryRequest request, @RequestPart("image") List<MultipartFile> file) {
         return ResponseEntity.ok(documentService.addInquiry(request, file));
     }
 
@@ -50,8 +47,8 @@ public class DocumentController {
     }
 
     @DeleteMapping("/api/admin/notice")
-    public ResponseEntity<Void> deleteNotice(@RequestBody Long id) {
-        documentService.deleteNotice(id);
+    public ResponseEntity<Void> deleteNotice(@RequestBody DeleteNoticeRequest request) {
+        documentService.deleteNotice(request.getId());
         return ResponseEntity.ok().build();
     }
 
@@ -76,8 +73,8 @@ public class DocumentController {
     }
 
     @DeleteMapping("/api/admin/FAQ")
-    public ResponseEntity<Void> deleteFaq(@RequestBody Long id) {
-        documentService.deleteFaq(id);
+    public ResponseEntity<Void> deleteFaq(@RequestBody DeleteNoticeRequest request) {
+        documentService.deleteFaq(request.getId());
         return ResponseEntity.ok().build();
     }
 }

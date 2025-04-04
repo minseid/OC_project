@@ -44,7 +44,7 @@ public class ScheduleService {
         //id 유효성 검증
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting);
-        if(!scheduleRepository.existsByMeeting(targetMeeting)) {
+        if(scheduleRepository.existsByMeeting(targetMeeting)) {
             throw new IllegalArgumentException("일정이 이미 등록되어있습니다!");
         }
         if(userMeetingMappingRepository.findByUserAndMeeting(targetUser, targetMeeting).isEmpty()) {
@@ -145,11 +145,15 @@ public class ScheduleService {
 
     //일정조회
     public GetScheduleResponse getSchedule(Long meetingId) {
-        Schedule target = findService.valid(scheduleRepository.findByMeeting(findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting)), EntityType.Schedule);
-        return GetScheduleResponse.builder()
-                .meetingId(target.getMeeting().getId())
-                .date(target.getDate())
-                .time(target.getTime())
-                .build();
+        Meeting meeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        if(scheduleRepository.existsByMeeting(meeting)) {
+            Schedule target = scheduleRepository.findByMeeting(meeting).get();
+            return GetScheduleResponse.builder()
+                    .date(target.getDate())
+                    .time(target.getTime())
+                    .build();
+        } else {
+            throw new IllegalArgumentException("일정이 등록되지 않았습니다!");
+        }
     }
 }

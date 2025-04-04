@@ -56,7 +56,6 @@ public class PlaceService {
             Link link = findService.valid(linkRepository.findByPlace(place),EntityType.Link);
             places.add(GetPlaceResponse.builder()
                     .id(place.getId())
-                    .meetingId(meetingId)
                     .naverLink(link.getNaverLink())
                     .kakaoLink(link.getKakaoLink())
                     .name(place.getName())
@@ -132,7 +131,6 @@ public class PlaceService {
     private AddPlaceResponse addPlaceResponse(Link link, boolean together) {
         return AddPlaceResponse.builder()
                 .id(link.getPlace().getId())
-                .meetingId(link.getPlace().getMeeting().getId())
                 .naverLink(link.getNaverLink())
                 .kakaoLink(link.getKakaoLink())
                 .name(link.getPlace().getName())
@@ -191,7 +189,7 @@ public class PlaceService {
     }
 
     //장소삭제 메서드
-    public Place deletePlace(Long placeId, Long userId) {
+    public void deletePlace(Long placeId, Long userId) {
 
         //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
@@ -208,7 +206,6 @@ public class PlaceService {
                 }
             }
         });
-        return target;
     }
 
     //장소pick 메서드
@@ -315,9 +312,7 @@ public class PlaceService {
                 }
             });
             return AddCommentResponse.builder()
-                    .placeId(placeId)
                     .commentId(saved.getId())
-                    .userId(userId)
                     .description(description)
                     .build();
         } else {
@@ -353,7 +348,7 @@ public class PlaceService {
                 }
             });
             return EditCommentResponse.builder()
-                    .id(saved.getId())
+                    .commentId(saved.getId())
                     .description(saved.getDescription())
                     .build();
         } else {
@@ -388,7 +383,7 @@ public class PlaceService {
 
     //코멘트 조회 메서드
     public List<GetCommentResponse> getComment(Long placeId) {
-        List<Comment> target = commentRepository.findAllByPlace(findService.valid(placeRepository.findById(placeId), EntityType.Comment));
+        List<Comment> target = commentRepository.findAllByPlace(findService.valid(placeRepository.findById(placeId), EntityType.Place));
         return target.stream().map(GetCommentResponse::toDto).collect(Collectors.toList());
     }
 

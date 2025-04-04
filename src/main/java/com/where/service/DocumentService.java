@@ -106,7 +106,7 @@ public class DocumentService {
             responseList.add(GetInquiryAdminResponse.builder()
                     .id(inquiry.getId())
                     .userId(inquiry.getUser().getId())
-                    .userName(inquiry.getUser().getName())
+                    .userName(inquiry.getUser().getNickName())
                     .title(inquiry.getTitle())
                     .content(inquiry.getContent())
                     .images(inquiry.getImages())
@@ -178,7 +178,7 @@ public class DocumentService {
     //공지 수정하는 메서드
     public EditNoticeResponse editNotice(EditNoticeRequest request) {
         Notice target = findService.valid(noticeRepository.findById(request.getId()),EntityType.Notice);
-        if(request.getTitle()==null && request.getContent()==null){
+        if((request.getTitle()==null && request.getContent()==null) || (request.getTitle().isBlank() && request.getContent().isBlank()) || (request.getTitle().equals(target.getTitle()) && request.getContent().equals(target.getContent()))){
             throw new IllegalArgumentException("수정사항이 없습니다!");
         }
         Notice saved = noticeRepository.save(Notice.builder()
@@ -231,7 +231,7 @@ public class DocumentService {
     //FAQ 수정하는 메서드
     public EditNoticeResponse editFaq(EditNoticeRequest request) {
         Notice target = findService.valid(noticeRepository.findById(request.getId()),EntityType.Notice);
-        if(request.getTitle()==null && request.getContent()==null){
+        if((request.getTitle()==null && request.getContent()==null) || (request.getTitle().isBlank() && request.getContent().isBlank()) || (request.getTitle().equals(target.getTitle()) && request.getContent().equals(target.getContent()))){
             throw new IllegalArgumentException("수정사항이 없습니다!");
         }
         Notice saved = noticeRepository.save(Notice.builder()

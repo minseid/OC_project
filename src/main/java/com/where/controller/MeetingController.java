@@ -17,7 +17,6 @@ public class MeetingController{
 
     private final MeetingService meetingService;
 
-
     @PostMapping("/api/meeting")
     public ResponseEntity<AddMeetingResponse> addMeeting(@Valid @RequestPart("data") AddMeetingRequest request, @RequestPart("image") MultipartFile image) {
         return ResponseEntity.ok(meetingService.addMeeting(request.getTitle(), request.getDescription(), image, request.getFromId(),request.getParticipants()));
@@ -35,7 +34,7 @@ public class MeetingController{
     }
 
     @DeleteMapping("/api/meeting")
-    public ResponseEntity<QuitMeetingResponse> quitMeeting(@Valid @RequestBody QuitMeetingRequest request) {
+    public ResponseEntity<Void> quitMeeting(@Valid @RequestBody QuitMeetingRequest request) {
         meetingService.quitMeeting(request.getUserId(), request.getId());
         return ResponseEntity.ok().build();
     }

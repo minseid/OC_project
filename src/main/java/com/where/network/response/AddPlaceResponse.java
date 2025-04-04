@@ -13,8 +13,6 @@ public class AddPlaceResponse {
 
     private Long id;
 
-    private Long meetingId;
-
     private String naverLink;
 
     private String kakaoLink;

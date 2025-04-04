@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 public class EditCommentResponse {
 
-    private Long id;
+    private Long commentId;
 
     private String description;
 }

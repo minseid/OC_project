@@ -38,13 +38,15 @@ public class FriendService {
             List<MeetingForFriendResponse> data = new ArrayList<>();
             friend.getMeets().forEach(meetingId -> {
                 Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
-                data.add(MeetingForFriendResponse.builder()
-                        .meetingId(meetingId)
-                        .meetingImage(targetMeeting.getImage())
-                        .meetingName(targetMeeting.getTitle())
-                        .description(targetMeeting.getDescription())
-                        .date(targetMeeting.getUpdatedAt().toLocalDate())
-                        .build());
+                if(targetMeeting.isFinished()) {
+                    data.add(MeetingForFriendResponse.builder()
+                            .meetingId(meetingId)
+                            .meetingImage(targetMeeting.getImage())
+                            .meetingName(targetMeeting.getTitle())
+                            .description(targetMeeting.getDescription())
+                            .date(targetMeeting.getUpdatedAt().toLocalDate())
+                            .build());
+                }
             });
             //해당유저 id가 U1에 있는지 U2에 있는지 모름
             User targetUser = null;
