@@ -1,10 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>어디앱 설치</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="/image/audi_icon.ico" type="image/x-icon">
+
+    <!-- Bootstrap CSS 추가 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 아이콘 사용-->
+    <script src="https://kit.fontawesome.com/c47ed1e85c.js" crossorigin="anonymous"></script>
+
+    <!-- 글골적용-->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!--
+    <style>
+    
+        body {
+            margin: 0 auto;
+            padding: 0;
+            font-family: 'Pretendard-Regular', sans-serif;
+            background: linear-gradient(#F7F4FD , white);
+            text-align: center;
+            min-height: 100vh;
+            max-width: 800px;
+
+            /* Flexbox로 중앙 정렬 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .title {
+            font-weight: 800;
+            color: black;
+            line-height: 1.5;
+        }
+    
+        .already-installed-text {
+            color: #666;
+            font-weight: 500;
+        }
+    
+        .open-link {
+            display: block;
+            margin-top: 8px;
+            color: #5e49e2;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .chevron-icon {
+            margin-left: 5px; /* 글자와 화살표 사이 간격 */
+            position: relative;
+            font-size: 0.9em; /* 아이콘 크기 약간 조정 (선택사항) */
+        }
+
+        @media (min-width: 400px) and (max-width: 499px) {
+            .main-image {
+                width: 110% !important;
+                transform: translateX(-20px) !important;
+            }
+
+            .image-container{
+                height: 300px !important;
+            }
+
+        }
+
+
+        /* 500px ~ 767px: 짤림 수정 */
+        @media (min-width: 500px) and (max-width: 767px) {
+            .main-image {
+                width: 100% !important;
+                transform: translateX(-20px) !important;
+            }
+        }
+
+        /* 768px 이상: 짤림 수정 */
+        @media (min-width: 768px) {
+            .main-image {
+                width: 110% !important;
+                transform: translateX(-20px) !important;
+            }
+        }
+    </style>
+    -->
+    
 </head>
 <body>
-<button type="button" onclick="window.open('https://www.naver.com')">이동하기</button>
+    <div>
+        친구들과 장소 정할 때,<br>
+        <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!
+        <img src="/image/audi.png" class="main-image" alt="어디앱 이미지">
+        <button type="button">
+            <i class="fa-solid fa-arrow-up-from-bracket" ></i> 어디앱 설치
+        </button>
+        어디앱이 있으신가요?
+        <a href="어디앱 열기 링크">
+            어디앱 열기 <i class="fa-solid fa-chevron-right chevron-icon" style="color: #5e49e2;"></i>
+        </a>
+    </div>
+    <!--
+    <div id="fortop" class="container text-center" style="padding-top: 10px;">
+        <div class="fs-2 mb-3" style="padding-top: 30px;">
+            <span class="title">
+                친구들과 장소 정할 때,<br>
+                <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!
+            </span>
+        </div>
+    
+        <div class="image-container" style="width: 100%; height: 350px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+            <img src="/image/audi.png" class="main-image" alt="어디앱 이미지" style="width: 125%; height: auto; object-fit: cover; transform: translateX(-30px);">
+          </div>
+          
+        
+    </div>
+    <div class="d-grid gap-2 col-10 mx-auto mt-5">
+        <button type="button" class="btn btn-lg text-white" style="background-color: #4F46E5; height: 55px; font-weight: 500; font-size: 18px;">
+            <i class="fa-solid fa-arrow-up-from-bracket" style="margin-right: 10px;"></i> 어디앱 설치
+        </button>
+    
+        <div class="fs-6 already-installed-text mt-3">
+            어디앱이 있으신가요?
+        </div>
+    
+        <a href="어디앱 열기 링크" class="fs-6 open-link">
+            어디앱 열기 <i class="fa-solid fa-chevron-right chevron-icon" style="color: #5e49e2;"></i>
+        </a>
+    </div>
+    -->
+<!-- Bootstrap JS (필요하면 추가) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!--
+<script>
+    function loadInviteJS() {
+        // 이미 불러온 적 있으면 다시 안 불러옴
+        if (document.getElementById('invite-script')) return;
+
+        const script = document.createElement('script');
+        script.src = '/js/invite.js';
+        script.id = 'invite-script'; // 나중에 중복 추가 막으려고 id 줌
+        document.body.appendChild(script);
+    }
+
+    function checkAndLoadInviteJS() {
+        if (window.innerWidth <= 400) {
+            loadInviteJS();
+        }
+    }
+
+    // 페이지 처음 열었을 때 체크
+    checkAndLoadInviteJS();
+
+    // 화면 크기 바뀔 때마다 체크
+    window.addEventListener('resize', checkAndLoadInviteJS);
+</script>
+-->
+
 </body>
 </html>

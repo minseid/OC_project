@@ -5,7 +5,6 @@ import com.where.constant.MethodType;
 import com.where.constant.SendType;
 import com.where.entity.*;
 import com.where.network.fcm.SendAddMemberDto;
-import com.where.network.fcm.SendDeleteFriendDto;
 import com.where.network.response.*;
 import com.where.repository.*;
 import com.where.util.Pair;
@@ -46,7 +45,7 @@ public class MeetingService {
     private final ScheduleRepository scheduleRepository;
     private final FriendRepository friendRepository;
 
-    private final String linkForInvite = "https://www.audiwhere.codns.com/";
+    private final String linkForInvite = "https://www.audiwhere.codns.com/invite";
     private final LinkRepository linkRepository;
     private final UserPlaceMappingRepository userPlaceMappingRepository;
 
@@ -572,5 +571,32 @@ public class MeetingService {
                 .finished(targetMeeting.isFinished())
                 .createdAt(targetMeeting.getCreatedAt())
                 .build();
+    }
+
+    //초대장조회 메서드
+    public GetInviteResponse getInvite(String link) {
+        if(meetingRepository.existsByLink("https://audiwhere.codns.com/invite/" + link)) {
+            Meeting targetMeeting = meetingRepository.findByLink(link).get();
+            if(scheduleRepository.existsByMeeting(targetMeeting)) {
+                Schedule schedule = scheduleRepository.findByMeeting(targetMeeting).get();
+                return GetInviteResponse.builder()
+                        .meetingId(targetMeeting.getId())
+                        .image(targetMeeting.getImage())
+                        .title(targetMeeting.getTitle())
+                        .scheduleDate(schedule.getDate())
+                        .scheduleTime(schedule.getTime())
+                        .build();
+            } else {
+                return GetInviteResponse.builder()
+                        .meetingId(targetMeeting.getId())
+                        .image(targetMeeting.getImage())
+                        .title(targetMeeting.getTitle())
+                        .scheduleDate(null)
+                        .scheduleTime(null)
+                        .build();
+            }
+        } else {
+            throw new IllegalArgumentException("초대장이 올바르지 않습니다!");
+        }
     }
 }

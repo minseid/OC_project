@@ -65,4 +65,9 @@ public class MeetingController{
     public ResponseEntity<InviteOkResponse> inviteOk(@Valid @RequestBody InviteOkRequest request) {
         return ResponseEntity.ok(meetingService.inviteOk(request.getId()));
     }
+
+    @GetMapping("/api/meeting/invite/{link}")
+    public ResponseEntity<GetInviteResponse> getInviteOk(@PathVariable("link") String link) {
+        return ResponseEntity.ok(meetingService.getInvite(link));
+    }
 }
