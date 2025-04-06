@@ -18,5 +18,7 @@ public class GetFriendResponse {
 
     private String friendImage;
 
+    private boolean friendBookmark;
+
     private List<MeetingForFriendResponse> meetingDetail;
 }

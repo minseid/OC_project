@@ -50,16 +50,20 @@ public class FriendService {
             });
             //해당유저 id가 U1에 있는지 U2에 있는지 모름
             User targetUser = null;
+            boolean isBookmarked = false;
             if(friend.getU1()==id) {
                 targetUser = findService.valid(userRepository.findById(friend.getU2()), EntityType.User);
+                isBookmarked = friend.isU1Bookmark();
             } else {
                 targetUser = findService.valid(userRepository.findById(friend.getU1()), EntityType.User);
+                isBookmarked = friend.isU2Bookmark();
             }
             responses.add(GetFriendResponse.builder()
                     .friendId(targetUser.getId())
                     .friendName(targetUser.getNickName())
                     .friendImage(targetUser.getProfileImage())
                     .meetingDetail(data)
+                    .friendBookmark(isBookmarked)
                     .build());
         });
         return responses;
@@ -81,33 +85,37 @@ public class FriendService {
     public BookmarkFriendResponse bookmarkFriend(Long userId, Long friendId) {
         if(friendRepository.existsByU1AndU2(userId, friendId)) {
             Friend target = friendRepository.findByU1AndU2(userId, friendId).get();
+            boolean isBookmarked = target.isU1Bookmark();
+            log.warn("변경전 북마크 : " + target.isU1Bookmark());
             friendRepository.save(Friend.builder()
                     .id(target.getId())
                     .u1(target.getU1())
                     .u2(target.getU2())
-                    .u1Bookmark(!target.isU1Bookmark())
+                    .u1Bookmark(!isBookmarked)
                     .u2Bookmark(target.isU2Bookmark())
                     .meets(target.getMeets())
                     .build());
             return BookmarkFriendResponse.builder()
                     .userId(userId)
                     .friendId(friendId)
-                    .bookmark(!target.isU1Bookmark())
+                    .bookmark(!isBookmarked)
                     .build();
         } else if(friendRepository.existsByU1AndU2(friendId, userId)){
             Friend target = friendRepository.findByU1AndU2(friendId, userId).get();
+            boolean isBookmarked = target.isU2Bookmark();
+            log.warn("변경전 북마크 : " + target.isU2Bookmark());
             friendRepository.save(Friend.builder()
                     .id(target.getId())
                     .u1(target.getU1())
                     .u2(target.getU2())
                     .u1Bookmark(target.isU1Bookmark())
-                    .u2Bookmark(!target.isU2Bookmark())
+                    .u2Bookmark(!isBookmarked)
                     .meets(target.getMeets())
                     .build());
             return BookmarkFriendResponse.builder()
                     .userId(userId)
                     .friendId(friendId)
-                    .bookmark(!target.isU2Bookmark())
+                    .bookmark(!isBookmarked)
                     .build();
         } else {
             throw new IllegalArgumentException("해당 친구를 찾을수 없습니다!");
