@@ -60,7 +60,7 @@ public class UserController {
      */
     @PostMapping("/{userId}/upload")
     public String uploadProfileImage(@PathVariable Long userId,
-                                     @RequestParam("file") MultipartFile multipartFile) {
+                                     @RequestPart("file") MultipartFile multipartFile) {
         return awsS3Service.saveProfileImage(multipartFile, userId);
     }
 
@@ -69,7 +69,7 @@ public class UserController {
      */
     @PutMapping("/{userId}/edit")
     public String editProfileImage(@PathVariable Long userId,
-                                   @RequestParam("file") MultipartFile multipartFile,
+                                   @RequestPart("file") MultipartFile multipartFile,
                                    @RequestParam("currentImageLink") String currentImageLink) {
         return awsS3Service.editProfileImage(multipartFile, userId, currentImageLink);
     }
