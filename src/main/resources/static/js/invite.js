@@ -1,3 +1,20 @@
+function adjustContentScale() {
+    const container = document.body;
+    const containerHeight = container.scrollHeight;
+    const windowHeight = window.innerHeight;
+
+    let scale = 1;
+
+    if(containerHeight>windowHeight) {
+        scale = windowHeight/containerHeight;
+    }
+
+    container.style.transform = `scale(${scale})`;
+    container.style.transformOrigin = 'center center';
+
+
+}
+
 function redirectToAppStore() {
     // userAgent를 통해 안드로이드와 iOS 구분
     var userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -46,7 +63,12 @@ function checkDeviceAndRedirect(event) {
 }
 
 // 브라우저 크기가 변경될 때마다 호출되도록 설정
-window.addEventListener('resize', adjustImageTransform);
+window.addEventListener('resize', () => {
+    adjustImageTransform();
+    //adjustContentScale();
+});
 
-// 페이지 로드 시에도 호출
-adjustImageTransform();
+window.addEventListener('load', () => {
+    adjustImageTransform();
+    //adjustContentScale();
+})

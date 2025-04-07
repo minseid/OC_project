@@ -18,7 +18,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />   
     <style>
         
-        .body {
+        body {
             font-family: 'Pretendard-Regular', sans-serif;
             background: linear-gradient(#F7F4FD , white);
         }
@@ -41,6 +41,13 @@
             margin: 0 auto;
         }
 
+        .download-btn{
+            background-color: #4F46E5; 
+            height: 55px; 
+            font-weight: 500; 
+            font-size: 18px;
+        }
+
     </style>
 </head>
 <body>
@@ -50,7 +57,7 @@
         <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!
         </div>
         <img src="https://audiwhere.codns.com/image/audi.png" class="main-image" alt="어디앱 이미지" >
-        <button type="button" class="btn btn-lg text-white col-10" style="background-color: #4F46E5; height: 55px; font-weight: 500; font-size: 18px;" onclick="redirectToAppStore()">
+        <button type="button" class="btn btn-lg text-white col-10 download-btn" onclick="redirectToAppStore()">
             <i class="fa-solid fa-arrow-up-from-bracket" ></i> 어디앱 설치
         </button>
         <div class="my-3">
