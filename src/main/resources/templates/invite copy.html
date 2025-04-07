@@ -21,19 +21,24 @@
         body {
             font-family: 'Pretendard-Regular', sans-serif;
             background: linear-gradient(#F7F4FD , white);
+            padding : 20px;
+            overflow: hidden;
         }
 
         .main-image{
             width: 115vw;
             height: auto;
             object-fit: cover;
-            transform: translateX(-5vw);
+            transform: translate(-6vw,-10vw);
             max-width: 800px;
+            position:absolute;
+            z-index: 0;
         }
 
         .open-link{
             text-decoration: none;
             color: #5e49e2;
+            z-index: 1;
         }
 
         .whole_container{
@@ -46,55 +51,41 @@
             height: 55px; 
             font-weight: 500; 
             font-size: 18px;
+            z-index: 1;
         }
 
-        .subpic {
+        .z-1 {
             position: relative;
+            margin-bottom: 45vh;
         }
-
-        .pic {
-            display:grid;
-            grid-template-columns: auto auto auto;
-            grid-gap: 15px;
-        }
-
-        .innertext {
-            position: absolute;
-            top: 90px;
-            z-index:1;
-            left:20px;
-            width: 800px;
-
-        }
-    
 
     </style>
 </head>
 <body>
-    <div class="d-flex flex-column align-items-center justify-content-center vh-100 text-center my-1 whole_container">
-        <div class="fs-1" style="font-weight: 800;">
-            친구들과 장소 정할 때,<br>
-        <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!
-        </div>
+    <div class="position-relative d-flex flex-column align-items-center justify-content-center vh-100 text-center whole_container">
 
-        <div class="pic">
-            <div class="subpic">
-                <img src="https://audiwhere.codns.com/image/audi.png" class="main-image" alt="어디앱 이미지"><span class="innertext">친구들과 장소 정할 때,<br>
-                    <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!</span>
+        <img src="https://audiwhere.codns.com/image/audi.png" class="main-image position-absolute" alt="어디앱 이미지">
+    
+        <div class="z-1">
+            <div class="fs-1" style="font-weight: 800;">
+                친구들과 장소 정할 때,<br>
+                <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!
             </div>
         </div>
-
         
-        <button type="button" class="btn btn-lg text-white col-10 download-btn" onclick="redirectToAppStore()">
-            <i class="fa-solid fa-arrow-up-from-bracket" ></i> 어디앱 설치
-        </button>
-        <div class="my-3">
-            어디앱이 있으신가요?
-        </div>
-        <a href="#" th:href="${inviteLink}" class="fs-6 open-link" onclick="checkDeviceAndRedirect(event)">
-            어디앱 열기 <i class="fa-solid fa-chevron-right chevron-icon" style="color: #5e49e2;"></i>
-        </a>
+            <button type="button" class="btn btn-lg text-white col-10 download-btn my-4" onclick="redirectToAppStore()">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i> 어디앱 설치
+            </button>
+    
+            <div class="my-3" style="z-index: 2;">
+                어디앱이 있으신가요?
+            </div>
+    
+            <a href="#" th:href="${inviteLink}" class="fs-6 open-link" onclick="checkDeviceAndRedirect(event)">
+                어디앱 열기 <i class="fa-solid fa-chevron-right chevron-icon" style="color: #5e49e2;"></i>
+            </a>
     </div>
+    
 <!-- Bootstrap JS (필요하면 추가) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 

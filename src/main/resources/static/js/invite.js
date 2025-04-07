@@ -1,18 +1,12 @@
 function adjustContentScale() {
-    const container = document.body;
-    const containerHeight = container.scrollHeight;
+    const image = document.querySelector('.main-image');
+    const margin = document.querySelector('.z-1');
     const windowHeight = window.innerHeight;
 
     let scale = 1;
 
-    if(containerHeight>windowHeight) {
-        scale = windowHeight/containerHeight;
-    }
-
-    container.style.transform = `scale(${scale})`;
-    container.style.transformOrigin = 'center center';
-
-
+    scale = image.scrollHeight*0.8;
+    margin.style.marginBottom = scale + 'px';
 }
 
 function redirectToAppStore() {
@@ -37,9 +31,9 @@ function redirectToAppStore() {
 function adjustImageTransform() {
     const img = document.querySelector('.main-image');
     if (window.innerWidth > 800) {
-        img.style.transform = 'translateX(0)';  // 브라우저 너비가 800px보다 크면 translateX를 0으로 설정
+        img.style.transform = 'translate(0, -1vh)';  // 브라우저 너비가 800px보다 크면 translateX를 0으로 설정
     } else {
-        img.style.transform = 'translateX(-5vw)';  // 그렇지 않으면 translateX를 -5vw로 설정
+        img.style.transform = 'translate(-6vw, -5vh)';  // 그렇지 않으면 translateX를 -5vw로 설정
     }
 }
 

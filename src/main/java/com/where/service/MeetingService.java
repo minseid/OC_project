@@ -52,7 +52,7 @@ public class MeetingService {
     private final ScheduleRepository scheduleRepository;
     private final FriendRepository friendRepository;
 
-    private final String linkForInvite = "https://www.audiwhere.codns.com/invite";
+    private final String linkForInvite = "https://www.audiwhere.codns.com/invite/";
     private final LinkRepository linkRepository;
     private final UserPlaceMappingRepository userPlaceMappingRepository;
 

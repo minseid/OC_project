@@ -193,6 +193,8 @@ public class PlaceService {
 
         //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
+        //장소공유한 유저정보 삭제
+        userPlaceMappingRepository.deleteAllByPlace(target);
         //해당 장소에 저장되어있는 코멘트 삭제
         commentRepository.findAllByPlace(target).forEach(commentRepository::delete);
         placeRepository.delete(target);

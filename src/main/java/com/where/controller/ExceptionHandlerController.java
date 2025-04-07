@@ -17,7 +17,7 @@ import java.util.Map;
 public class ExceptionHandlerController {
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
-    public ResponseEntity<String> illegalArgumentExceptionHandler(IllegalArgumentException e) {
+    public ResponseEntity<String> illegalArgumentExceptionHandler(RuntimeException e) {
         log.error("Illegal 오류 발생 : " + e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
