@@ -1,6 +1,7 @@
 package com.where.service;
 
 import com.where.constant.EntityType;
+import com.where.constant.ImageType;
 import com.where.constant.MethodType;
 import com.where.constant.SendType;
 import com.where.entity.*;
@@ -15,9 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,11 +60,32 @@ public class MeetingService {
     @Scheduled(cron = "0 0 3 * * ?")
     public void deleteExpiredMeetings() {
         log.info("모임종료3개월이상 모임 삭제 진행");
+
+        //삭제모임정보 로그저장
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("모임종료3개월이상 모임삭제 진행");
+
         List<Meeting> targetMeetings = meetingRepository.findAllByFinishedIsTrueAndUpdatedAtBefore(LocalDateTime.now().minusMonths(3l));
         targetMeetings.forEach(meeting -> {
             //해당 모임에 있는 구성원들 전부 조회후 친구에서 meetings안에서 해당 meetingId 제거
             List<UserMeetingMapping> targetMapping =  userMeetingMappingRepository.findAllByMeeting(meeting);
             List<User> users = targetMapping.stream().map(UserMeetingMapping::getUser).toList();
+
+            //모임정보 로그저장
+            logBuilder.append("삭제된 모임 ID : " + meeting.getId() + "\n");
+            logBuilder.append("모임 이름 : " + meeting.getTitle() + "\n");
+            logBuilder.append("모임 설명 : " + meeting.getDescription() + "\n");
+            logBuilder.append("구성원 Id : ");
+            targetMapping.forEach(mapping -> {
+                logBuilder.append(mapping.getUser().getId() + ", ");
+            });
+            logBuilder.append("\n");
+
+            //모임이미지 있다면 삭제
+            if(StringUtils.hasText(meeting.getImage())) {
+                awsS3Service.delete(meeting.getImage(), ImageType.Meeting);
+            }
+
             //구성원정보 삭제
             userMeetingMappingRepository.deleteAll(targetMapping);
             //구성원이 2명 이상일때만 친구에서 모임내역삭제
@@ -89,8 +117,16 @@ public class MeetingService {
             }
             //초대삭제
             participantRepository.deleteAllByMeeting(meeting);
+
+            logBuilder.append("장소\n");
+
             //장소삭제전에 장소와 관련된 모든 데이터 삭제
             placeRepository.findAllByMeeting(meeting).forEach(place -> {
+
+                //장소내용 로그저장
+                logBuilder.append("장소이름 : " + place.getName() + "\n");
+                logBuilder.append("장소주소 : " + place.getAddress() + "\n");
+
                 //코멘트삭제
                 commentRepository.deleteAllByPlace(place);
                 //링크삭제
@@ -107,7 +143,24 @@ public class MeetingService {
             //모임삭제
             meetingRepository.delete(meeting);
         });
+
+        //로그빌더에 저장한것 파일로 저장
+        saveLogToText(logBuilder.toString());
+
         log.info("모임종료3개월이상 모임 삭제 완료 : " + targetMeetings.size() + "개");
+    }
+
+    //로그빌더에 저장한것 파일로 저장
+    private void saveLogToText(String text) {
+        try {
+            String directoryPath = "/home/ubuntu/expiredMeeting"; // 원하는 폴더
+            Files.createDirectories(Paths.get(directoryPath)); // 폴더 없으면 만들기
+            String fileName = "delete_log_" + LocalDate.now() + ".txt"; // 오늘 날짜로 파일명
+            Path filePath = Paths.get(directoryPath, fileName);
+            Files.write(filePath, text.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+        log.error("삭제 로그 저장 실패", e);
+    }
     }
 
     //모임 초대용 링크 만드는 메서드
