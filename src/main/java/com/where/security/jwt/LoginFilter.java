@@ -19,7 +19,7 @@ import java.util.ArrayList;
 @Component
 public class LoginFilter extends OncePerRequestFilter {
 
-    private static final String LOGIN_PATH = "/login";
+    private static final String LOGIN_PATH = "/api/user/login";
 
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;

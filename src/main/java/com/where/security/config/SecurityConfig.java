@@ -2,8 +2,7 @@ package com.where.security.config;
 
 import com.where.security.jwt.JwtFilter;
 import com.where.security.jwt.LoginFilter;
-import com.where.security.oauth2.KakaoOauthService;
-import com.where.security.oauth2.NaverOauthService; // 네이버 OAuth2 서비스 추가
+import com.where.security.oauth2.CustomOAuth2UserService;
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,14 +21,11 @@ import org.springframework.security.web.firewall.StrictHttpFirewall;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final KakaoOauthService kakaoOauthService;
-    @Getter
-    private final NaverOauthService naverOauthService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
-    public SecurityConfig(JwtFilter jwtFilter, KakaoOauthService kakaoOauthService, NaverOauthService naverOauthService) {
+    public SecurityConfig(JwtFilter jwtFilter, CustomOAuth2UserService customOAuth2UserService) {
         this.jwtFilter = jwtFilter;
-        this.kakaoOauthService = kakaoOauthService;
-        this.naverOauthService = naverOauthService;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
@@ -37,17 +33,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/", "/login/**", "/oauth2/**", "/invite/**").permitAll()
-//                        .requestMatchers("/api/user/signup").permitAll()
-//                        .requestMatchers("/api/user/**").hasRole("ADMIN")
-//                        .anyRequest().authenticated()
-                                .anyRequest().permitAll()
+                        .anyRequest().permitAll()
                 )
-
                 .oauth2Login(oauth -> oauth
                         .defaultSuccessUrl("/home")
                         .failureUrl("/login?error=true")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(kakaoOauthService))
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                 )
                 .addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
