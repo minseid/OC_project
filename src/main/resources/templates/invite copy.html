@@ -48,6 +48,26 @@
             font-size: 18px;
         }
 
+        .subpic {
+            position: relative;
+        }
+
+        .pic {
+            display:grid;
+            grid-template-columns: auto auto auto;
+            grid-gap: 15px;
+        }
+
+        .innertext {
+            position: absolute;
+            top: 90px;
+            z-index:1;
+            left:20px;
+            width: 800px;
+
+        }
+    
+
     </style>
 </head>
 <body>
@@ -56,7 +76,15 @@
             친구들과 장소 정할 때,<br>
         <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!
         </div>
-        <img src="https://audiwhere.codns.com/image/audi.png" class="main-image" alt="어디앱 이미지" >
+
+        <div class="pic">
+            <div class="subpic">
+                <img src="https://audiwhere.codns.com/image/audi.png" class="main-image" alt="어디앱 이미지"><span class="innertext">친구들과 장소 정할 때,<br>
+                    <span style="color: #4F46E5;">어디</span>에서 쉽고 간편하게!</span>
+            </div>
+        </div>
+
+        
         <button type="button" class="btn btn-lg text-white col-10 download-btn" onclick="redirectToAppStore()">
             <i class="fa-solid fa-arrow-up-from-bracket" ></i> 어디앱 설치
         </button>
