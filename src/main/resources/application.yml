@@ -6,11 +6,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/oudi?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false
-#    jdbc:mysql://where-db1.c3sewig4iszd.ap-northeast-2.rds.amazonaws.com:3306/where_db
-    username: root
-    password: 1234
-#    ${RDS_PASSWORD}
+    url: jdbc:mysql://where-db1.c3sewig4iszd.ap-northeast-2.rds.amazonaws.com:3306/where_db
+    username: admin
+    password: ${RDS_PASSWORD}
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -72,14 +70,13 @@ cloud:
       secret-key: ${AWS_S3_SECRET_KEY}
 
 server:
-  port: 8081
-  address: 127.0.0.1
+  port: 443
   ssl:
-    enabled: false
-#    key-store: /home/ubuntu/keystore.p12
-#    key-store-password: ${SSL_PASSWORD}
-#    key-store-type: PKCS12
-#  forward-headers-strategy: native
+    enabled: true
+    key-store: /home/ubuntu/keystore.p12
+    key-store-password: ${SSL_PASSWORD}
+    key-store-type: PKCS12
+  forward-headers-strategy: native
 
 logging:
   level:
