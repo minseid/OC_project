@@ -45,6 +45,12 @@ public class AwsS3Service {
     public String saveProfileImage(MultipartFile multipartFile, Long userId)  {
         return upload(multipartFile, profileImgDir, userId);
     }
+    public String editProfileImage(MultipartFile multipartFile, Long userId, String imageLink) {
+        if(!(imageLink == null || imageLink.isEmpty())) {
+            delete(imageLink,ImageType.Profile);
+        }
+        return upload(multipartFile, profileImgDir, userId);
+    }
 
     public String saveInquiryImage(MultipartFile multipartFile, Long inquiryId)  {
         return upload(multipartFile, inquiryImgDir, inquiryId);
@@ -57,12 +63,7 @@ public class AwsS3Service {
         return upload(multipartFile, meetingImgDir, meetingId);
     }
 
-    public String editProfileImage(MultipartFile multipartFile, Long userId, String imageLink) {
-        if(!(imageLink == null || imageLink.isEmpty())) {
-            delete(imageLink,ImageType.Profile);
-        }
-        return upload(multipartFile, inquiryImgDir, userId);
-    }
+
 
     public String editInquiryImage(MultipartFile multipartFile, Long inquiryId, String imageLink) {
         if(!(imageLink == null || imageLink.isEmpty())) {
@@ -114,22 +115,5 @@ public class AwsS3Service {
                 break;
         }
     }
-    public String uploadProfileImage(Long userId, MultipartFile file) throws IOException {
-        // 파일명 설정 (UUID 사용)
-        String fileName = "profile-images/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        // S3에 업로드
-        amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), null)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
-
-        // S3 URL 반환
-        String fileUrl = amazonS3Client.getUrl(bucket, fileName).toString();
-
-        // DB에 이미지 URL 저장
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        //user.setProfileImage(fileUrl);
-        userRepository.save(user);
-
-        return fileUrl;
-    }
 }

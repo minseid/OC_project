@@ -55,14 +55,22 @@ public class UserController {
         userService.deleteUser(userId);
         return ResponseEntity.ok().build();
     }
-    //유저 프로필 이미지 등록
-    @PostMapping("/{userId}/uploadProfile")
-    public ResponseEntity<String> uploadProfile(@PathVariable String userID, @RequestParam("file") MultipartFile file) {
-        try{
-            String imageUrl = awsS3Service.uploadProfileImage(Long.valueOf(userID),file);
-            return ResponseEntity.ok(imageUrl);
-        }catch (IOException e){
-            return ResponseEntity.badRequest().body("프로필 업로드 실패" + e.getMessage());
-        }
+    /**
+     * 새 프로필 이미지 업로드
+     */
+    @PostMapping("/{userId}/upload")
+    public String uploadProfileImage(@PathVariable Long userId,
+                                     @RequestParam("file") MultipartFile multipartFile) {
+        return awsS3Service.saveProfileImage(multipartFile, userId);
+    }
+
+    /**
+     * 기존 프로필 이미지 수정
+     */
+    @PutMapping("/{userId}/edit")
+    public String editProfileImage(@PathVariable Long userId,
+                                   @RequestParam("file") MultipartFile multipartFile,
+                                   @RequestParam("currentImageLink") String currentImageLink) {
+        return awsS3Service.editProfileImage(multipartFile, userId, currentImageLink);
     }
 }
