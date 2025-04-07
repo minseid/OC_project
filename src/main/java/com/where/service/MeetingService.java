@@ -63,7 +63,7 @@ public class MeetingService {
 
         //삭제모임정보 로그저장
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("모임종료3개월이상 모임삭제 진행");
+        logBuilder.append("모임종료3개월이상 모임삭제 진행\n");
 
         List<Meeting> targetMeetings = meetingRepository.findAllByFinishedIsTrueAndUpdatedAtBefore(LocalDateTime.now().minusMonths(3l));
         targetMeetings.forEach(meeting -> {
@@ -79,6 +79,7 @@ public class MeetingService {
             targetMapping.forEach(mapping -> {
                 logBuilder.append(mapping.getUser().getId() + ", ");
             });
+            logBuilder.delete(logBuilder.length() - 2, logBuilder.length());
             logBuilder.append("\n");
 
             //모임이미지 있다면 삭제
@@ -119,11 +120,16 @@ public class MeetingService {
             participantRepository.deleteAllByMeeting(meeting);
 
             logBuilder.append("장소\n");
+            if(!placeRepository.existsByMeeting(meeting)) {
+                logBuilder.append("없음\n");
+            }
 
             //장소삭제전에 장소와 관련된 모든 데이터 삭제
             placeRepository.findAllByMeeting(meeting).forEach(place -> {
 
+                int i = 0;
                 //장소내용 로그저장
+                logBuilder.append(i++ + ".\n");
                 logBuilder.append("장소이름 : " + place.getName() + "\n");
                 logBuilder.append("장소주소 : " + place.getAddress() + "\n");
 
