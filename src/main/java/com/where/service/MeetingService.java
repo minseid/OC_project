@@ -461,7 +461,7 @@ public class MeetingService {
                 .build());
         //fcm으로 알림전송
         try {
-            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
+            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getNickName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
         } catch (IOException e) {
             throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
         }

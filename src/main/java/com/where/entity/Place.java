@@ -7,7 +7,7 @@ import lombok.*;
 
 import java.util.List;
 
-@Table(name="Place")
+@Table(name="place")
 @Entity
 @ToString
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class Place extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "place_id")
+    @Column
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,8 +38,6 @@ public class Place extends TimeBaseEntity {
     private float y;
 
     @ElementCollection
-    @CollectionTable(name = "place_like_users", joinColumns = @JoinColumn(name="place_id"))
-    @Column(nullable = false)
     private List<Long> likes;
 
     @Column(nullable = false)
