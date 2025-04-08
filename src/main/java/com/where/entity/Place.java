@@ -5,6 +5,8 @@ import com.where.constant.PlaceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name="Place")
 @Entity
 @ToString
@@ -16,6 +18,7 @@ public class Place extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "place_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,8 +37,10 @@ public class Place extends TimeBaseEntity {
     @Column(nullable = false)
     private float y;
 
+    @ElementCollection
+    @CollectionTable(name = "place_like_users", joinColumns = @JoinColumn(name="place_id"))
     @Column(nullable = false)
-    private long likeCount;
+    private List<Long> likes;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

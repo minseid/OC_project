@@ -60,7 +60,7 @@ public class PlaceService {
                     .kakaoLink(link.getKakaoLink())
                     .name(place.getName())
                     .address(place.getAddress())
-                    .likeCount(place.getLikeCount())
+                    .likes(place.getLikes())
                     .placeStatus(place.getPlaceStatus())
                     .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
                     .build());
@@ -135,7 +135,7 @@ public class PlaceService {
                 .kakaoLink(link.getKakaoLink())
                 .name(link.getPlace().getName())
                 .address(link.getPlace().getAddress())
-                .likeCount(link.getPlace().getLikeCount())
+                .likes(link.getPlace().getLikes())
                 .placeStatus(link.getPlace().getPlaceStatus())
                 .together(together)
                 .build();
@@ -149,7 +149,7 @@ public class PlaceService {
                 .address(address)
                 .x(placeAddressDto.getX())
                 .y(placeAddressDto.getY())
-                .likeCount(0)
+                .likes(new ArrayList<>())
                 .placeStatus(PlaceStatus.NotPicked)
                 .build());
         userPlaceMappingRepository.save(UserPlaceMapping.builder()
@@ -165,7 +165,7 @@ public class PlaceService {
                                     .placeId(savedPlace.getId())
                                     .placeName(savedPlace.getName())
                                     .address(savedPlace.getAddress())
-                                    .likeCount(savedPlace.getLikeCount())
+                                    .likes(savedPlace.getLikes())
                                     .placeStatus(savedPlace.getPlaceStatus())
                                     .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
                                     .kakaoLink(placeAddressDto.getKakaoLink())
@@ -215,13 +215,12 @@ public class PlaceService {
 
         //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
-        //좋아요수가 모임 멤버수 내에 있는 범위 내에서 +1, -1
         Place saved = placeRepository.save(Place.builder()
                     .id(target.getId())
                     .meeting(target.getMeeting())
                     .name(target.getName())
                     .address(target.getAddress())
-                    .likeCount(target.getLikeCount())
+                    .likes(target.getLikes())
                     .placeStatus(target.getPlaceStatus()==PlaceStatus.Picked? PlaceStatus.NotPicked: PlaceStatus.Picked)
                     .build());
         //모임구성원들에게 변경내용 전송
@@ -240,23 +239,30 @@ public class PlaceService {
         });
         return PickPlaceResponse.builder()
                 .id(saved.getId())
-                .likeCount(saved.getLikeCount())
+                .like(saved.getLikes().contains(userId))
                 .placeStatus(saved.getPlaceStatus())
                 .build();
     }
 
     //장소 좋아요 메서드
-    public PickPlaceResponse likePlace(Long placeId, boolean like, Long userId) {
+    public PickPlaceResponse likePlace(Long placeId, Long userId) {
 
         //id 유효성 검증
         Place target = findService.valid(placeRepository.findById(placeId),EntityType.Place);
-        //picked 토글
+        findService.valid(userRepository.findById(userId), EntityType.User);
+        boolean like = target.getLikes().contains(userId);
+        //likes에 해당 유저가 있는지 확인후 토글
+        if(like){
+            target.getLikes().remove(Long.valueOf(userId));
+        } else {
+            target.getLikes().add(userId);
+        }
         Place saved = placeRepository.save(Place.builder()
                 .id(target.getId())
                 .meeting(target.getMeeting())
                 .name(target.getName())
                 .address(target.getAddress())
-                .likeCount(like?(target.getLikeCount()>=userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).size()? target.getLikeCount(): target.getLikeCount()+1):(target.getLikeCount()>0? target.getLikeCount()-1: target.getLikeCount()))
+                .likes(target.getLikes())
                 .placeStatus(target.getPlaceStatus())
                 .build());
         //모임구성원들에게 변경내용 전송
@@ -265,7 +271,7 @@ public class PlaceService {
                 try {
                     fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendLikePlaceDto.builder()
                                     .placeId(saved.getId())
-                                    .likeCount(saved.getLikeCount())
+                                    .likeCount(saved.getLikes().size())
                                     .build(),
                             MethodType.PlaceLike,SendType.Data);
                 } catch (IOException e) {
@@ -275,7 +281,7 @@ public class PlaceService {
         });
         return PickPlaceResponse.builder()
                 .id(saved.getId())
-                .likeCount(saved.getLikeCount())
+                .like(!like)
                 .placeStatus(saved.getPlaceStatus())
                 .build();
     }

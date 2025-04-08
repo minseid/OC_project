@@ -33,7 +33,7 @@ public class PlaceController{
 
     @PostMapping("/api/place/like")
     public ResponseEntity<PickPlaceResponse> likePlace(@RequestBody LikePlaceRequest request) {
-        return ResponseEntity.ok(placeService.likePlace(request.getId(), request.isLike(), request.getUserId()));
+        return ResponseEntity.ok(placeService.likePlace(request.getId(), request.getUserId()));
     }
 
     @PostMapping("/api/place/comment")
