@@ -56,6 +56,14 @@ function checkDeviceAndRedirect(event) {
     }
 }
 
+function kakaoToOut() {
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const target_url = location.href;
+
+    if(userAgent.match(/kakaotalk/i)) {
+        location.href = 'kakaotalk://web/openExternal?url='+encodeURIComponent(target_url);
+    }
+}
 // 브라우저 크기가 변경될 때마다 호출되도록 설정
 window.addEventListener('resize', () => {
     adjustImageTransform();
@@ -64,5 +72,6 @@ window.addEventListener('resize', () => {
 
 window.addEventListener('load', () => {
     adjustImageTransform();
+    kakaoToOut();
     //adjustContentScale();
 })
