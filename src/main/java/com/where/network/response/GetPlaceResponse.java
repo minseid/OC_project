@@ -3,6 +3,8 @@ package com.where.network.response;
 import com.where.constant.PlaceStatus;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
@@ -21,7 +23,7 @@ public class GetPlaceResponse {
 
     private String address;
 
-    private long likeCount;
+    private List<Long> likes;
 
     private PlaceStatus placeStatus;
 

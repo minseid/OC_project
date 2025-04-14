@@ -12,8 +12,6 @@ public class LikePlaceRequest {
 
     private Long id;
 
-    private boolean like;
-
     private Long userId;
 
 }

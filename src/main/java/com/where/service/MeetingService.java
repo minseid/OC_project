@@ -52,7 +52,7 @@ public class MeetingService {
     private final ScheduleRepository scheduleRepository;
     private final FriendRepository friendRepository;
 
-    private final String linkForInvite = "https://www.audiwhere.codns.com/invite";
+    private final String linkForInvite = "https://audiwhere.codns.com/invite/";
     private final LinkRepository linkRepository;
     private final UserPlaceMappingRepository userPlaceMappingRepository;
 
@@ -461,7 +461,7 @@ public class MeetingService {
                 .build());
         //fcm으로 알림전송
         try {
-            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
+            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getNickName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
         } catch (IOException e) {
             throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
         }
@@ -634,9 +634,13 @@ public class MeetingService {
 
     //초대장조회 메서드
     public GetInviteResponse getInvite(String link) {
-        if(meetingRepository.existsByLink("https://audiwhere.codns.com/invite/" + link)) {
-            Meeting targetMeeting = meetingRepository.findByLink(link).get();
+        String targetLink = "https://audiwhere.codns.com/invite/"+link;
+        if(meetingRepository.existsByLink(targetLink)) {
+            log.info("초대장있음");
+            Meeting targetMeeting = meetingRepository.findByLink(targetLink).get();
+            log.warn(targetMeeting.toString());
             if(scheduleRepository.existsByMeeting(targetMeeting)) {
+                log.warn("스케쥴있음");
                 Schedule schedule = scheduleRepository.findByMeeting(targetMeeting).get();
                 return GetInviteResponse.builder()
                         .meetingId(targetMeeting.getId())
@@ -646,6 +650,7 @@ public class MeetingService {
                         .scheduleTime(schedule.getTime())
                         .build();
             } else {
+                log.warn("스케쥴없음");
                 return GetInviteResponse.builder()
                         .meetingId(targetMeeting.getId())
                         .image(targetMeeting.getImage())

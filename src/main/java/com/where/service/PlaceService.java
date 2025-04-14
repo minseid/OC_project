@@ -45,7 +45,7 @@ public class PlaceService {
         Meeting target = findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting);
         User targetUser = findService.valid(userRepository.findById(userId),EntityType.User);
         if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, target)) {
-            throw new IllegalArgumentException("해당 유저는 해당 모임의 구성원이 아닙니다!");
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
         }
         List<GetPlaceResponse> places = new ArrayList<>();
         //해당 Meeting에 Place가 있는지 확인
@@ -60,7 +60,7 @@ public class PlaceService {
                     .kakaoLink(link.getKakaoLink())
                     .name(place.getName())
                     .address(place.getAddress())
-                    .likeCount(place.getLikeCount())
+                    .likes(place.getLikes())
                     .placeStatus(place.getPlaceStatus())
                     .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
                     .build());
@@ -78,7 +78,7 @@ public class PlaceService {
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
         log.warn(targetUser.toString());
         if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
-            throw new IllegalArgumentException("해당 유저는 해당 모임에 속해있지 않습니다!");
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
         }
         //카카오맵 api 이용해 해당 장소 정보 검색
         PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
@@ -135,7 +135,7 @@ public class PlaceService {
                 .kakaoLink(link.getKakaoLink())
                 .name(link.getPlace().getName())
                 .address(link.getPlace().getAddress())
-                .likeCount(link.getPlace().getLikeCount())
+                .likes(link.getPlace().getLikes())
                 .placeStatus(link.getPlace().getPlaceStatus())
                 .together(together)
                 .build();
@@ -149,7 +149,7 @@ public class PlaceService {
                 .address(address)
                 .x(placeAddressDto.getX())
                 .y(placeAddressDto.getY())
-                .likeCount(0)
+                .likes(new ArrayList<>())
                 .placeStatus(PlaceStatus.NotPicked)
                 .build());
         userPlaceMappingRepository.save(UserPlaceMapping.builder()
@@ -165,7 +165,7 @@ public class PlaceService {
                                     .placeId(savedPlace.getId())
                                     .placeName(savedPlace.getName())
                                     .address(savedPlace.getAddress())
-                                    .likeCount(savedPlace.getLikeCount())
+                                    .likes(savedPlace.getLikes())
                                     .placeStatus(savedPlace.getPlaceStatus())
                                     .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
                                     .kakaoLink(placeAddressDto.getKakaoLink())
@@ -193,6 +193,11 @@ public class PlaceService {
 
         //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),target.getMeeting())) {
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
+        //장소공유한 유저정보 삭제
+        userPlaceMappingRepository.deleteAllByPlace(target);
         //해당 장소에 저장되어있는 코멘트 삭제
         commentRepository.findAllByPlace(target).forEach(commentRepository::delete);
         placeRepository.delete(target);
@@ -213,13 +218,15 @@ public class PlaceService {
 
         //id 유효성 판단
         Place target = findService.valid(placeRepository.findById(placeId), EntityType.Place);
-        //좋아요수가 모임 멤버수 내에 있는 범위 내에서 +1, -1
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),target.getMeeting())) {
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
         Place saved = placeRepository.save(Place.builder()
                     .id(target.getId())
                     .meeting(target.getMeeting())
                     .name(target.getName())
                     .address(target.getAddress())
-                    .likeCount(target.getLikeCount())
+                    .likes(target.getLikes())
                     .placeStatus(target.getPlaceStatus()==PlaceStatus.Picked? PlaceStatus.NotPicked: PlaceStatus.Picked)
                     .build());
         //모임구성원들에게 변경내용 전송
@@ -238,23 +245,35 @@ public class PlaceService {
         });
         return PickPlaceResponse.builder()
                 .id(saved.getId())
-                .likeCount(saved.getLikeCount())
+                .like(saved.getLikes().contains(userId))
                 .placeStatus(saved.getPlaceStatus())
                 .build();
     }
 
     //장소 좋아요 메서드
-    public PickPlaceResponse likePlace(Long placeId, boolean like, Long userId) {
+    public PickPlaceResponse likePlace(Long placeId, Long userId) {
 
         //id 유효성 검증
         Place target = findService.valid(placeRepository.findById(placeId),EntityType.Place);
-        //picked 토글
+        User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+
+        //구성원정보 확인
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser,target.getMeeting())){
+            throw new IllegalArgumentException("해당유저는 이 모임의 구성원이 아닙니다!");
+        }
+        boolean like = target.getLikes().contains(userId);
+        //likes에 해당 유저가 있는지 확인후 토글
+        if(like){
+            target.getLikes().remove(Long.valueOf(userId));
+        } else {
+            target.getLikes().add(userId);
+        }
         Place saved = placeRepository.save(Place.builder()
                 .id(target.getId())
                 .meeting(target.getMeeting())
                 .name(target.getName())
                 .address(target.getAddress())
-                .likeCount(like?(target.getLikeCount()>=userMeetingMappingRepository.findAllByMeeting(target.getMeeting()).size()? target.getLikeCount(): target.getLikeCount()+1):(target.getLikeCount()>0? target.getLikeCount()-1: target.getLikeCount()))
+                .likes(target.getLikes())
                 .placeStatus(target.getPlaceStatus())
                 .build());
         //모임구성원들에게 변경내용 전송
@@ -263,7 +282,7 @@ public class PlaceService {
                 try {
                     fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendLikePlaceDto.builder()
                                     .placeId(saved.getId())
-                                    .likeCount(saved.getLikeCount())
+                                    .likeCount(saved.getLikes().size())
                                     .build(),
                             MethodType.PlaceLike,SendType.Data);
                 } catch (IOException e) {
@@ -273,7 +292,7 @@ public class PlaceService {
         });
         return PickPlaceResponse.builder()
                 .id(saved.getId())
-                .likeCount(saved.getLikeCount())
+                .like(!like)
                 .placeStatus(saved.getPlaceStatus())
                 .build();
     }
@@ -284,6 +303,10 @@ public class PlaceService {
         //각종 id 유효성 검사
         Place targetPlace = findService.valid(placeRepository.findById(placeId), EntityType.Place);
         User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser,targetPlace.getMeeting())){
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
+
         //해장 장소를 공유한 사용자가 맞는지 확인
         if(userPlaceMappingRepository.existsByUserAndPlace(targetUser,targetPlace)) {
             if(commentRepository.existsByUser(targetUser)){
@@ -325,6 +348,9 @@ public class PlaceService {
 
         //id 유효성 확인
         Comment target = findService.valid(commentRepository.findById(commentId), EntityType.Comment);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(findService.valid(userRepository.findById(userId),EntityType.User),target.getPlace().getMeeting())) {
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
         //해당코멘트를 단 유저인지 확인
         if(target.getUser().getId().equals(userId)) {
             Comment saved = commentRepository.save(Comment.builder()
@@ -361,6 +387,10 @@ public class PlaceService {
 
         //id 유효성 검사
         Comment target = findService.valid(commentRepository.findById(commentId), EntityType.Comment);
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(target.getUser(),target.getPlace().getMeeting())) {
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
+
         if(target.getUser().getId().equals(userId)) {
             commentRepository.delete(target);
             //모임 구성원에게 데이터 전송

@@ -5,7 +5,9 @@ import com.where.constant.PlaceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Table(name="Place")
+import java.util.List;
+
+@Table(name="place")
 @Entity
 @ToString
 @AllArgsConstructor
@@ -16,6 +18,7 @@ public class Place extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,8 +37,8 @@ public class Place extends TimeBaseEntity {
     @Column(nullable = false)
     private float y;
 
-    @Column(nullable = false)
-    private long likeCount;
+    @ElementCollection
+    private List<Long> likes;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

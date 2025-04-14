@@ -13,7 +13,7 @@ public class PickPlaceResponse {
 
     private Long id;
 
-    private long likeCount;
+    private boolean like;
 
     private PlaceStatus placeStatus;
 }

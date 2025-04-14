@@ -3,6 +3,8 @@ package com.where.network.fcm;
 import com.where.constant.PlaceStatus;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
@@ -19,7 +21,7 @@ public class SendAddPlaceDto {
 
     private String address;
 
-    private long likeCount;
+    private List<Long> likes;
 
     private PlaceStatus placeStatus;
 
