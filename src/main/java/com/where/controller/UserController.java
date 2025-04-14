@@ -1,9 +1,12 @@
 package com.where.controller;
 
+import com.where.entity.User;
+import com.where.network.request.KakaoLoginRequest;
 import com.where.network.request.SignUpRequest;
 import com.where.network.response.SignUpResponse;
 import com.where.network.response.UserResponse;
 import com.where.service.AwsS3Service;
+import com.where.service.KakaoService;
 import com.where.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class UserController {
 
     private final UserService userService;
     private final AwsS3Service awsS3Service;
+    private final KakaoService kakaoService;
 
     // 유저 회원가입
     @PostMapping("/signup")
@@ -32,6 +36,8 @@ public class UserController {
                 .build();
         return ResponseEntity.ok(userResponse);
     }
+
+
 
     // 유저 이메일 중복 확인
     @PostMapping("/checkEmail")
@@ -72,5 +78,10 @@ public class UserController {
                                    @RequestPart("file") MultipartFile multipartFile,
                                    @RequestParam("currentImageLink") String currentImageLink) {
         return awsS3Service.editProfileImage(multipartFile, userId, currentImageLink);
+    }
+
+    @PostMapping("/kakao")
+    public String kakaoLogin(@RequestBody KakaoLoginRequest request) {
+        return kakaoService.kakaoLogin(request); // 🔥 이제 토큰을 리턴함
     }
 }

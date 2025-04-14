@@ -41,6 +41,13 @@ public class JWTUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+    public String generateAccessToken(String username) {
+        return generateToken("access", "default", username, "ROLE_USER", 1000 * 60 * 30); // 30분
+    }
+
+    public String generateRefreshToken(String username) {
+        return generateToken("refresh", "default", username, "ROLE_USER", 1000L * 60 * 60 * 24 * 7); // 7일
+    }
 
     public String generateToken(String category, String loginType, String username, String role, long expirationMs) {
         return Jwts.builder()

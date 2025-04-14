@@ -6,6 +6,7 @@ import com.where.network.request.SignUpRequest;
 import com.where.network.response.SignUpResponse;
 import com.where.network.response.UserResponse;
 import com.where.repository.UserRepository;
+import com.where.util.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,10 +14,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2(topic = "UserService")
 public class UserService {
+    private final KakaoService kakaoService;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // Inject PasswordEncoder instead of BCryptPasswordEncoder
@@ -116,4 +121,5 @@ public class UserService {
         // Log the successful deletion of user
         log.info("User deleted: {}", user.getEmail());
     }
+
 }

@@ -41,6 +41,9 @@ public class User extends TimeBaseEntity {
     @Column(name = "password", nullable = false) // 'password' 컬럼과 매핑
     private String password;
 
+    private String provider;
+
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false) // 'role' 컬럼과 매핑
     private UserRole role;

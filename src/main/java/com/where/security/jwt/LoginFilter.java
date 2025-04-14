@@ -1,20 +1,19 @@
 package com.where.security.jwt;
 
-import lombok.Getter;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class LoginFilter extends OncePerRequestFilter {
@@ -22,11 +21,13 @@ public class LoginFilter extends OncePerRequestFilter {
     private static final String LOGIN_PATH = "/api/user/login";
 
     private final AuthenticationManager authenticationManager;
-    private final PasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;  // ⭐ 추가
 
-    public LoginFilter(AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
         this.authenticationManager = authenticationManager;
-        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.refreshTokenRepository = refreshTokenRepository;  // ⭐ 주입
     }
 
     @Override
@@ -41,30 +42,38 @@ public class LoginFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(username, password);
 
             try {
-                // AuthenticationManager를 통해 인증 시도
                 Authentication authResult = authenticationManager.authenticate(authenticationToken);
-
-                // 인증 성공 시 SecurityContext에 저장
                 SecurityContextHolder.getContext().setAuthentication(authResult);
 
-                // 응답 처리 (예: JSON 반환)
+                String accessToken = jwtUtil.generateAccessToken(username);
+                String refreshToken = jwtUtil.generateRefreshToken(username);
+
+                // ⭐ Refresh Token 저장
+                RefreshToken tokenEntity = new RefreshToken(username, refreshToken);
+                refreshTokenRepository.save(tokenEntity);
+
+                // 응답 처리
                 response.setContentType("application/json");
-                response.getWriter().write("{\"message\": \"Login successful\"}");
+                response.setCharacterEncoding("UTF-8");
+
+                String jsonResponse = "{"
+                        + "\"accessToken\":\"" + accessToken + "\","
+                        + "\"refreshToken\":\"" + refreshToken + "\""
+                        + "}";
+
+                response.getWriter().write(jsonResponse);
             } catch (Exception e) {
-                // 인증 실패 처리
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
                 response.getWriter().write("{\"error\": \"Invalid credentials\"}");
-                return;
             }
         } else {
-            chain.doFilter(request, response); // 다른 요청은 다음 필터로 전달
+            chain.doFilter(request, response);
         }
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        // /login 경로만 필터링 대상으로 설정
         return !request.getRequestURI().equals(LOGIN_PATH);
     }
 }

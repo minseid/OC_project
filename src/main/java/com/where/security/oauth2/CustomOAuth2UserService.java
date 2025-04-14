@@ -1,5 +1,7 @@
 package com.where.security.oauth2;
 
+import com.where.constant.UserRole;
+import com.where.entity.User;
 import com.where.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,35 +42,51 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String email = null;
         String name = null;
+        String profileImage = null;
 
         if ("kakao".equals(registrationId)) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
             Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
             email = (String) kakaoAccount.get("email");
             name = (String) profile.get("nickname");
-
+            profileImage = (String) profile.get("profile_image_url");
         } else if ("naver".equals(registrationId)) {
             Map<String, Object> response = (Map<String, Object>) attributes.get("response");
             email = (String) response.get("email");
             name = (String) response.get("name");
-
+            profileImage = (String) response.get("profile_image");
         } else {
             throw new OAuth2AuthenticationException("Unsupported provider: " + registrationId);
         }
 
-        log.info("OAuth2 user info - provider: {}, name: {}, email: {}", registrationId, name, email);
+        log.info("OAuth2 user info - provider: {}, name: {}, email: {}, profileImage: {}", registrationId, name, email, profileImage);
 
-        // TODO: email로 기존 사용자 조회하고 없으면 저장하는 로직 추가 가능
-        // userRepository.findByEmail(email)... (예시)
+        final String finalEmail = email;
+        final String finalName = name;
+        final String finalProfileImage = profileImage;
+        final String finalRegistrationId = registrationId;
 
-        // 최종적으로 OAuth2User 리턴
+        User user = userRepository.findByEmail(email)
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email(finalEmail)
+                        .name(finalName)
+                        .nickName(finalName) // 닉네임은 그냥 name 그대로
+                        .profileImage(finalProfileImage)
+                        .provider(finalRegistrationId)
+                        .role(UserRole.USER) // 기본 USER 권한
+                        .password("SOCIAL_LOGIN") // 소셜 로그인은 비번이 없으니 임시 저장
+                        .build()
+                ));
+
         Map<String, Object> customAttributes = new HashMap<>();
         customAttributes.put("provider", registrationId);
         customAttributes.put("name", name);
         customAttributes.put("email", email);
+        customAttributes.put("profileImage", profileImage);
 
         Collection<OAuth2UserAuthority> authorities = Collections.singleton(new OAuth2UserAuthority(customAttributes));
 
         return new DefaultOAuth2User(authorities, customAttributes, "email");
     }
+
 }

@@ -1,7 +1,9 @@
 package com.where.security.config;
 
+import com.where.security.jwt.JWTUtil;
 import com.where.security.jwt.JwtFilter;
 import com.where.security.jwt.LoginFilter;
+import com.where.security.jwt.RefreshTokenRepository;
 import com.where.security.oauth2.CustomOAuth2UserService;
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
@@ -63,8 +65,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public LoginFilter loginFilter(AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
-        return new LoginFilter(authenticationManager, passwordEncoder);
+    public LoginFilter loginFilter(
+            AuthenticationManager authenticationManager,
+            JWTUtil jwtUtil,
+            RefreshTokenRepository refreshTokenRepository
+    ) {
+        return new LoginFilter(authenticationManager, jwtUtil, refreshTokenRepository);
     }
+
 
 }
