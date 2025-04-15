@@ -23,25 +23,35 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         }
         // 웹 요청인 경우 리다이렉트
         else {
+            // 기본 리다이렉트 URL
+            String redirectUrl = "/login?logout=true";
+
             // 소셜 로그인 여부에 따라 다른 리다이렉트 처리
-            String redirectUrl = "/login?logout=true";  // 기본 리다이렉트
+            if (authentication != null && authentication.getDetails() != null) {
+                try {
+                    // Map인 경우에만 provider 정보 추출 시도
+                    if (authentication.getDetails() instanceof Map) {
+                        Map<String, Object> details = (Map<String, Object>) authentication.getDetails();
+                        String provider = (String) details.get("provider");
 
-            if (authentication != null && authentication.getDetails() instanceof Map) {
-                Map<String, Object> details = (Map<String, Object>) authentication.getDetails();
-                String provider = (String) details.get("provider");
-
-                if (provider != null) {
-                    switch (provider) {
-                        case "naver":
-                            redirectUrl = "/naver-logout-success";
-                            break;
-                        case "kakao":
-                            redirectUrl = "/kakao-logout-success";
-                            break;
-                        case "apple":
-                            redirectUrl = "/apple-logout-success";
-                            break;
+                        if (provider != null) {
+                            switch (provider) {
+                                case "naver":
+                                    redirectUrl = "/naver-logout-success";
+                                    break;
+                                case "kakao":
+                                    redirectUrl = "/kakao-logout-success";
+                                    break;
+                                case "apple":
+                                    redirectUrl = "/apple-logout-success";
+                                    break;
+                            }
+                        }
                     }
+                } catch (Exception e) {
+                    // 예외 발생 시 기본 리다이렉트 유지
+                    // 로그 추가
+                    // log.error("소셜 로그아웃 처리 중 오류 발생", e);
                 }
             }
 

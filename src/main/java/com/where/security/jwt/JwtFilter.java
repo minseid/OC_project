@@ -47,21 +47,17 @@ public class JwtFilter extends OncePerRequestFilter {
                 } else {
                     // 만료된 토큰 처리
                     SecurityContextHolder.clearContext();
+                    request.setAttribute("expired", true);
                     logger.warn("Expired token detected");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("{\"error\": \"Token expired\"}");
-                    response.setContentType("application/json");
-                    return; // 더 이상 필터 체인을 진행하지 않음
                 }
             } catch (JwtException e) {
                 SecurityContextHolder.clearContext();
+                request.setAttribute("invalid", true);
+                request.setAttribute("error", e.getMessage());
                 logger.error("JWT processing error: ", e);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("{\"error\": \"Invalid token\"}");
-                response.setContentType("application/json");
-                return; // 더 이상 필터 체인을 진행하지 않음
             }
         }
+
         chain.doFilter(request, response);
     }
 

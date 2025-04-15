@@ -38,9 +38,26 @@ public class LoginFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         if (request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().equals(LOGIN_PATH)) {
-            String username = request.getParameter("username");
-            String password = request.getParameter("password");
+            String username = null;
+            String password = null;
 
+            // Content-Type 확인
+            String contentType = request.getContentType();
+
+            // JSON 요청 처리
+            if (contentType != null && contentType.contains("application/json")) {
+                // JSON 파싱
+                Map<String, String> loginData = objectMapper.readValue(request.getInputStream(), Map.class);
+                username = loginData.get("username");
+                password = loginData.get("password");
+            }
+            // 폼 데이터 처리 (기존 코드)
+            else {
+                username = request.getParameter("username");
+                password = request.getParameter("password");
+            }
+
+            // 나머지 인증 로직은 동일
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(username, password);
 

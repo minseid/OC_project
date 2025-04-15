@@ -64,8 +64,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private User createUser(OAuthUserInfo userInfo, String provider) {
+        // 이메일이 null인 경우 처리
+        String email = userInfo.getEmail();
+        if (email == null) {
+            // 임시적인 이메일 생성 (provider + 랜덤 UUID)
+            email = provider + "_" + UUID.randomUUID().toString() + "@temp.com";
+        }
+
         User user = User.builder()
-                .email(userInfo.getEmail())
+                .email(email)
                 .name(userInfo.getName())
                 .nickName(userInfo.getName())  // 닉네임은 일단 이름과 동일하게
                 .profileImage(userInfo.getProfileImage())
@@ -92,8 +99,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
+        // 이메일이 null일 수 있으므로 안전하게 처리
+        String email = kakaoAccount.containsKey("email") ? (String) kakaoAccount.get("email") : null;
+
         return OAuthUserInfo.builder()
-                .email((String) kakaoAccount.get("email"))
+                .email(email)
                 .name((String) profile.get("nickname"))
                 .profileImage((String) profile.get("profile_image_url"))
                 .build();
@@ -102,8 +112,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private OAuthUserInfo extractNaverUserInfo(Map<String, Object> attributes) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
+        // 이메일이 null일 수 있으므로 안전하게 처리
+        String email = response.containsKey("email") ? (String) response.get("email") : null;
+
         return OAuthUserInfo.builder()
-                .email((String) response.get("email"))
+                .email(email)
                 .name((String) response.get("name"))
                 .profileImage((String) response.get("profile_image"))
                 .build();
