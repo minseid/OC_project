@@ -25,6 +25,7 @@ public class JasyptConfig {
         config.setKeyObtentionIterations("1000"); // 반복할 해싱 횟수
         config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator"); // salt 생성 클래스
         config.setStringOutputType("base64");    // 인코딩 방식
+        config.setAlgorithm("PBEWithHmacSHA512AndAES_256");
 
         encryptor.setConfig(config);
         return encryptor;

@@ -2,10 +2,7 @@ package com.where.security.config;
 
 import com.where.security.handler.CustomLogoutFilter;
 import com.where.security.handler.CustomLogoutSuccessHandler;
-import com.where.security.jwt.JWTUtil;
-import com.where.security.jwt.JwtFilter;
-import com.where.security.jwt.LoginFilter;
-import com.where.security.jwt.RefreshTokenRepository;
+import com.where.security.jwt.*;
 import com.where.security.oauth2.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -57,21 +55,42 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
+
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .logout(logout -> logout
                         .logoutUrl("/api/logout")
                         .addLogoutHandler(customLogoutFilter)
                         .logoutSuccessHandler(customLogoutSuccessHandler)
+
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**") // Disable for API endpoints
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // Enable for others
+                )
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; " +
+                                        "img-src 'self' data:; style-src 'self' https://cdnjs.cloudflare.com; " +
+                                        "font-src 'self'; connect-src 'self'")
+                        )
                 );
 
+
         return http.build();
+    }
+    @Bean
+    public RateLimitFilter rateLimitFilter() {
+        return new RateLimitFilter();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "https://audiwhere.codns.com"
+        ));        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 

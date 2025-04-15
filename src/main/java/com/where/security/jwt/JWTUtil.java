@@ -39,11 +39,11 @@ public class JWTUtil {
                 .getPayload();
     }
     public String generateAccessToken(String username) {
-        return generateToken("access", "default", username, "ROLE_USER", 1000 * 60 * 30); // 30분
+        return generateToken("access", "default", username, "ROLE_USER", 1000 * 60 * 15); // 15 minutes
     }
 
     public String generateRefreshToken(String username) {
-        return generateToken("refresh", "default", username, "ROLE_USER", 1000L * 60 * 60 * 24 * 7); // 7일
+        return generateToken("refresh", "default", username, "ROLE_USER", 1000L * 60 * 60 * 24 * 14); // 14 days
     }
 
     public String generateToken(String category, String loginType, String username, String role, long expirationMs) {

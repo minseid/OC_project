@@ -90,6 +90,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return extractKakaoUserInfo(attributes);
         } else if ("naver".equals(registrationId)) {
             return extractNaverUserInfo(attributes);
+        } else if ("apple".equals(registrationId)) {
+            return extractAppleUserInfo(attributes);
         } else {
             throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인: " + registrationId);
         }
@@ -119,6 +121,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .email(email)
                 .name((String) response.get("name"))
                 .profileImage((String) response.get("profile_image"))
+                .build();
+    }
+    private OAuthUserInfo extractAppleUserInfo(Map<String, Object> attributes) {
+        // Apple specific extraction logic
+        // Apple usually provides limited info, often just an identifier
+        String email = (String) attributes.get("email");
+        String name = (String) attributes.get("name") != null ?
+                (String) attributes.get("name") : "Apple User";
+
+        return OAuthUserInfo.builder()
+                .email(email)
+                .name(name)
+                .profileImage(null) // Apple doesn't provide profile image
                 .build();
     }
 }
