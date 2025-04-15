@@ -1,5 +1,6 @@
 package com.where.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,25 +8,29 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class LoginFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/api/user/login";
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
-    private final RefreshTokenRepository refreshTokenRepository;  // ⭐ 추가
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.refreshTokenRepository = refreshTokenRepository;  // ⭐ 주입
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Override
@@ -46,24 +51,29 @@ public class LoginFilter extends OncePerRequestFilter {
                 String accessToken = jwtUtil.generateAccessToken(username);
                 String refreshToken = jwtUtil.generateRefreshToken(username);
 
+                // 기존 리프레시 토큰이 있으면 삭제
+                refreshTokenRepository.findById(username).ifPresent(refreshTokenRepository::delete);
+
                 // Refresh Token 저장
                 RefreshToken tokenEntity = new RefreshToken(username, refreshToken);
                 refreshTokenRepository.save(tokenEntity);
 
                 // 응답 처리
+                Map<String, String> tokens = new HashMap<>();
+                tokens.put("accessToken", accessToken);
+                tokens.put("refreshToken", refreshToken);
+
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-
-                String jsonResponse = "{"
-                        + "\"accessToken\":\"" + accessToken + "\","
-                        + "\"refreshToken\":\"" + refreshToken + "\""
-                        + "}";
-
-                response.getWriter().write(jsonResponse);
-            } catch (Exception e) {
+                response.getWriter().write(objectMapper.writeValueAsString(tokens));
+            } catch (AuthenticationException e) {
+                SecurityContextHolder.clearContext();
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
-                response.getWriter().write("{\"error\": \"Invalid credentials\"}");
+
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Invalid credentials");
+                response.getWriter().write(objectMapper.writeValueAsString(error));
             }
         } else {
             chain.doFilter(request, response);

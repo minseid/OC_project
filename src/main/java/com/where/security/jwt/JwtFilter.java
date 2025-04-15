@@ -45,12 +45,21 @@ public class JwtFilter extends OncePerRequestFilter {
                     );
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 } else {
-                    logger.info("Token is expired.");
+                    // 만료된 토큰 처리
+                    SecurityContextHolder.clearContext();
+                    logger.warn("Expired token detected");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("{\"error\": \"Token expired\"}");
+                    response.setContentType("application/json");
+                    return; // 더 이상 필터 체인을 진행하지 않음
                 }
             } catch (JwtException e) {
                 SecurityContextHolder.clearContext();
                 logger.error("JWT processing error: ", e);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"error\": \"Invalid token\"}");
+                response.setContentType("application/json");
+                return; // 더 이상 필터 체인을 진행하지 않음
             }
         }
         chain.doFilter(request, response);
@@ -67,8 +76,8 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        // 회원가입 경로는 필터링하지 않음
-        return path.equals("/api/user/signup");
+        // 인증이 필요 없는 경로 설정
+        return path.equals("/api/user/signup") || path.equals("/api/user/login") ||
+                path.startsWith("/api/token/refresh");
     }
 }
-
