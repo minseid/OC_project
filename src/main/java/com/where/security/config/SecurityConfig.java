@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -72,8 +73,12 @@ public class SecurityConfig {
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; " +
                                         "img-src 'self' data:; style-src 'self' https://cdnjs.cloudflare.com; " +
-                                        "font-src 'self'; connect-src 'self'")
+                                        "font-src 'self'; connect-src 'self'; " +
+                                        "frame-ancestors 'self'; form-action 'self'; " +
+                                        "base-uri 'self'; object-src 'none'")
                         )
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.valueOf("1; mode=block")))
                 );
 
 

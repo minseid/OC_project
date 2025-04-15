@@ -1,4 +1,4 @@
-package com.where.security.config;
+package com.where.security.validation;
 
 import org.springframework.stereotype.Component;
 
@@ -20,54 +20,54 @@ public class PasswordValidator {
         List<String> validationErrors = new ArrayList<>();
         int score = 0;
 
-        // Check for minimum length
+        // 최소 길이 확인
         if (password.length() < MIN_LENGTH) {
-            validationErrors.add("Password must be at least " + MIN_LENGTH + " characters long");
+            validationErrors.add("비밀번호는 최소 " + MIN_LENGTH + "자 이상이어야 합니다");
         } else {
             score++;
         }
 
-        // Check for maximum length
+        // 최대 길이 확인
         if (password.length() > MAX_LENGTH) {
-            validationErrors.add("Password must be less than " + MAX_LENGTH + " characters long");
+            validationErrors.add("비밀번호는 " + MAX_LENGTH + "자 미만이어야 합니다");
         }
 
-        // Check for uppercase letters
+        // 대문자 확인
         if (!HAS_UPPER.matcher(password).find()) {
-            validationErrors.add("Password must contain at least one uppercase letter");
+            validationErrors.add("비밀번호에는 최소한 하나의 대문자가 포함되어야 합니다");
         } else {
             score++;
         }
 
-        // Check for lowercase letters
+        // 소문자 확인
         if (!HAS_LOWER.matcher(password).find()) {
-            validationErrors.add("Password must contain at least one lowercase letter");
+            validationErrors.add("비밀번호에는 최소한 하나의 소문자가 포함되어야 합니다");
         } else {
             score++;
         }
 
-        // Check for numbers
+        // 숫자 확인
         if (!HAS_NUMBER.matcher(password).find()) {
-            validationErrors.add("Password must contain at least one number");
+            validationErrors.add("비밀번호에는 최소한 하나의 숫자가 포함되어야 합니다");
         } else {
             score++;
         }
 
-        // Check for special characters
+        // 특수 문자 확인
         if (!HAS_SPECIAL.matcher(password).find()) {
-            validationErrors.add("Password must contain at least one special character");
+            validationErrors.add("비밀번호에는 최소한 하나의 특수 문자가 포함되어야 합니다");
         } else {
             score++;
         }
 
-        // Calculate strength based on score
+        // 점수 기반으로 강도 계산
         PasswordStrength strength;
         if (score <= 2) {
-            strength = new PasswordStrength("weak", validationErrors);
+            strength = new PasswordStrength("약함", validationErrors);
         } else if (score <= 4) {
-            strength = new PasswordStrength("medium", validationErrors);
+            strength = new PasswordStrength("중간", validationErrors);
         } else {
-            strength = new PasswordStrength("strong", validationErrors);
+            strength = new PasswordStrength("강함", validationErrors);
         }
 
         return strength;

@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -32,11 +33,15 @@ public class JWTUtil {
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
+            throw new JwtException("Invalid token: " + e.getMessage());
+        }
     }
     public String generateAccessToken(String username) {
         return generateToken("access", "default", username, "ROLE_USER", 1000 * 60 * 15); // 15 minutes

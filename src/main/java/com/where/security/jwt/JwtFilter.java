@@ -61,11 +61,17 @@ public class JwtFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private String extractToken(HttpServletRequest request) {
+    private String extractToken(HttpServletRequest request) throws ServletException {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7); // "Bearer " 이후의 토큰 부분 추출
         }
+
+        // 요청에 토큰이 없는 경우만 로깅
+        if (request.getRequestURI().contains("/api/") && !shouldNotFilter(request)) {
+            logger.debug("No Authorization Bearer token found in request to {}", request.getRequestURI());
+        }
+
         return null;
     }
 
