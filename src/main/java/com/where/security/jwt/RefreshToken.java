@@ -16,7 +16,7 @@ import lombok.Setter;
 public class RefreshToken {
 
     @Id
-    private String userId;  
+    private String userId;
 
     @Column(nullable = false)
     private String refreshToken;

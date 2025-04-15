@@ -48,7 +48,7 @@ public class LoginFilter extends OncePerRequestFilter {
                 String accessToken = jwtUtil.generateAccessToken(username);
                 String refreshToken = jwtUtil.generateRefreshToken(username);
 
-                // ⭐ Refresh Token 저장
+                // Refresh Token 저장
                 RefreshToken tokenEntity = new RefreshToken(username, refreshToken);
                 refreshTokenRepository.save(tokenEntity);
 
