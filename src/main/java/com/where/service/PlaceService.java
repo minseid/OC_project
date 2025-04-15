@@ -60,7 +60,8 @@ public class PlaceService {
                     .kakaoLink(link.getKakaoLink())
                     .name(place.getName())
                     .address(place.getAddress())
-                    .likes(place.getLikes())
+                    .likes(place.getLikes().size())
+                    .myLike(place.getLikes().contains(targetUser.getId()))
                     .placeStatus(place.getPlaceStatus())
                     .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
                     .build());
@@ -135,7 +136,8 @@ public class PlaceService {
                 .kakaoLink(link.getKakaoLink())
                 .name(link.getPlace().getName())
                 .address(link.getPlace().getAddress())
-                .likes(link.getPlace().getLikes())
+                .likes(link.getPlace().getLikes().size())
+                .myLike(false)
                 .placeStatus(link.getPlace().getPlaceStatus())
                 .together(together)
                 .build();
@@ -165,7 +167,7 @@ public class PlaceService {
                                     .placeId(savedPlace.getId())
                                     .placeName(savedPlace.getName())
                                     .address(savedPlace.getAddress())
-                                    .likes(savedPlace.getLikes())
+                                    .likes(savedPlace.getLikes().size())
                                     .placeStatus(savedPlace.getPlaceStatus())
                                     .naverLink(naverMapLink + URLEncoder.encode(savedPlace.getName() + " " + placeAddressDto.getDetailAddress()) + "&appname=com.example.audi")
                                     .kakaoLink(placeAddressDto.getKakaoLink())
@@ -245,7 +247,8 @@ public class PlaceService {
         });
         return PickPlaceResponse.builder()
                 .id(saved.getId())
-                .like(saved.getLikes().contains(userId))
+                .likes(saved.getLikes().size())
+                .myLike(saved.getLikes().contains(userId))
                 .placeStatus(saved.getPlaceStatus())
                 .build();
     }
@@ -282,7 +285,7 @@ public class PlaceService {
                 try {
                     fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendLikePlaceDto.builder()
                                     .placeId(saved.getId())
-                                    .likeCount(saved.getLikes().size())
+                                    .likes(saved.getLikes().size())
                                     .build(),
                             MethodType.PlaceLike,SendType.Data);
                 } catch (IOException e) {
@@ -292,7 +295,8 @@ public class PlaceService {
         });
         return PickPlaceResponse.builder()
                 .id(saved.getId())
-                .like(!like)
+                .likes(target.getLikes().size())
+                .myLike(!like)
                 .placeStatus(saved.getPlaceStatus())
                 .build();
     }

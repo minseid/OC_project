@@ -12,5 +12,5 @@ public class SendLikePlaceDto {
 
     private Long placeId;
 
-    private long likeCount;
+    private long likes;
 }

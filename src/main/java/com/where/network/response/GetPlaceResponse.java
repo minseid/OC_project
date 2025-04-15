@@ -23,7 +23,9 @@ public class GetPlaceResponse {
 
     private String address;
 
-    private List<Long> likes;
+    private int likes;
+
+    private boolean myLike;
 
     private PlaceStatus placeStatus;
 

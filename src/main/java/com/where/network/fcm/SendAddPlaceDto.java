@@ -21,7 +21,7 @@ public class SendAddPlaceDto {
 
     private String address;
 
-    private List<Long> likes;
+    private int likes;
 
     private PlaceStatus placeStatus;
 

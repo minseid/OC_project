@@ -42,6 +42,9 @@ function adjustImageTransform() {
         whole_container.style.maxWidth = '500px';
         img.style.maxWidth = '500px';
         img.style.transform = 'translate(-6vw, -5vh)';
+        if(whole_container.scrollHeight > window.innerHeight) {
+            whole_container.style.setProperty('margin-top', (whole_container.scrollHeight - window.innerHeight)/3*-2 + 'px', 'important')
+        }
     }
 }
 
@@ -75,11 +78,9 @@ function kakaoToOut() {
 // 브라우저 크기가 변경될 때마다 호출되도록 설정
 window.addEventListener('resize', () => {
     adjustImageTransform();
-    //adjustContentScale();
 });
 
 window.addEventListener('load', () => {
     adjustImageTransform();
     kakaoToOut();
-    //adjustContentScale();
 })
