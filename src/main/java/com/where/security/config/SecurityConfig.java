@@ -5,9 +5,9 @@ import com.where.security.jwt.JwtFilter;
 import com.where.security.jwt.LoginFilter;
 import com.where.security.jwt.RefreshTokenRepository;
 import com.where.security.oauth2.CustomOAuth2UserService;
-import lombok.Getter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -15,7 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 
 
@@ -35,6 +34,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth -> oauth

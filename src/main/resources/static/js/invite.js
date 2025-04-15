@@ -27,13 +27,21 @@ function redirectToAppStore() {
     }
 }
 
-// 이미지에 변환 효과를 적용하는 함수
+// 화면비율에 따른 반응형
 function adjustImageTransform() {
     const img = document.querySelector('.main-image');
-    if (window.innerWidth > 800) {
-        img.style.transform = 'translate(0, -1vh)';  // 브라우저 너비가 800px보다 크면 translateX를 0으로 설정
+    const whole_container = document.querySelector('.whole_container');
+    const title = document.querySelector('#title');
+    if(window.innerHeight < window.innerWidth) {
+        title.classList.remove('fs-1');
+        title.classList.add('fs-2');
+        whole_container.style.maxWidth = window.innerHeight * 0.71 + 'px';
+        img.style.maxWidth = window.innerHeight * 0.71 + 'px';
+        img.style.transform = 'translate(0, -1vh)';
     } else {
-        img.style.transform = 'translate(-6vw, -5vh)';  // 그렇지 않으면 translateX를 -5vw로 설정
+        whole_container.style.maxWidth = '500px';
+        img.style.maxWidth = '500px';
+        img.style.transform = 'translate(-6vw, -5vh)';
     }
 }
 
