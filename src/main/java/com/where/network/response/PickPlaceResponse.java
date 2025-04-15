@@ -13,7 +13,9 @@ public class PickPlaceResponse {
 
     private Long id;
 
-    private boolean like;
+    private int likes;
+
+    private boolean myLike;
 
     private PlaceStatus placeStatus;
 }

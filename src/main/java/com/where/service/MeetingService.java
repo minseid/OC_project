@@ -268,7 +268,7 @@ public class MeetingService {
                 .description(description==null?targetmeeting.getDescription():description)
                 .link(targetmeeting.getLink())
                 //이미지를 수정한다면 기존에 있는것은 삭제 후 새로 저장, 이미지 수정이 없다면 그대로
-                .image(image.isEmpty()? targetmeeting.getImage(): awsS3Service.editMeetingImage(image, id, targetmeeting.getImage()))
+                .image((image ==null || image.isEmpty())? targetmeeting.getImage(): awsS3Service.editMeetingImage(image, id, targetmeeting.getImage()))
                 .finished(targetmeeting.isFinished())
                 .build();
         meetingRepository.save(target);
