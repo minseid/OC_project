@@ -69,7 +69,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 요청에 토큰이 없는 경우만 로깅
         if (request.getRequestURI().contains("/api/") && !shouldNotFilter(request)) {
-            logger.debug("No Authorization Bearer token found in request to {}", request.getRequestURI());
+            logger.debug("No Authorization Bearer token found in request to {}");
         }
 
         return null;
