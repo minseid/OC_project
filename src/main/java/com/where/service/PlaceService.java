@@ -154,7 +154,7 @@ public class PlaceService {
                 .address(address)
                 .x(placeAddressDto.getX())
                 .y(placeAddressDto.getY())
-                .likes(new ArrayList<>())
+                .likes(new ArrayList<Long>())
                 .placeStatus(PlaceStatus.NotPicked)
                 .build());
         userPlaceMappingRepository.save(UserPlaceMapping.builder()
