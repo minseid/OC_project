@@ -63,7 +63,10 @@ public class TokenController {
             // 5. 토큰 재발급
             String newAccessToken = jwtUtil.generateAccessToken(username);
 
-            return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+            // 헤더에 새로운 액세스 토큰 추가
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer " + newAccessToken)
+                    .body(Map.of("success", true, "message", "Access token refreshed"));
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "JWT processing error", "details", e.getMessage()));

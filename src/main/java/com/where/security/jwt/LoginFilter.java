@@ -75,15 +75,16 @@ public class LoginFilter extends OncePerRequestFilter {
                 RefreshToken tokenEntity = new RefreshToken(username, refreshToken);
                 refreshTokenRepository.save(tokenEntity);
 
-                // 응답 처리
-                Map<String, String> tokens = new HashMap<>();
-                tokens.put("accessToken", accessToken);
-                tokens.put("refreshToken", refreshToken);
+                // 응답 헤더에 토큰 추가
+                response.setHeader("Authorization", "Bearer " + accessToken);
+                response.setHeader("Refresh-Token", refreshToken);
 
+                // 성공 응답 (본문에는 토큰 정보 없이 성공 메시지만 포함)
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(objectMapper.writeValueAsString(tokens));
+                response.getWriter().write("{\"success\": true, \"message\": \"로그인 성공\"}");
             } catch (AuthenticationException e) {
+                // 기존 인증 실패 처리 유지
                 SecurityContextHolder.clearContext();
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
