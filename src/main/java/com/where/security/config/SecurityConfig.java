@@ -76,7 +76,7 @@ public class SecurityConfig {
                                         "base-uri 'self'; object-src 'none'")
                         )
                         .frameOptions(frameOptions -> frameOptions.deny())
-                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.valueOf("1; mode=block")))
+                        .xssProtection(xss -> xss.disable())
                 );
 
 
