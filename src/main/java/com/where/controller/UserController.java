@@ -31,8 +31,9 @@ public class UserController {
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
         SignUpResponse signUpResponse = userService.signUp(signUpRequest);
         UserResponse userResponse = UserResponse.builder()
+                .id(signUpResponse.getId())
                 .email(signUpResponse.getEmail())
-                .nickName(signUpResponse.getNickName()) // Nickname 추가
+                .nickName(signUpResponse.getNickName())
                 .build();
         return ResponseEntity.ok(userResponse);
     }

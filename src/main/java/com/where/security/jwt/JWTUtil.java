@@ -53,6 +53,7 @@ public class JWTUtil {
 
     public String generateToken(String category, String loginType, String username, String role, long expirationMs) {
         return Jwts.builder()
+
                 .claim("category", category)
                 .claim("loginType", loginType)
                 .claim("username", username)
