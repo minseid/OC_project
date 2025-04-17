@@ -29,5 +29,7 @@ public class GetPlaceResponse {
 
     private PlaceStatus placeStatus;
 
+    private List<String> users;
+
     private boolean together;
 }

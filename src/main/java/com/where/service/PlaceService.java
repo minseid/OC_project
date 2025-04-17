@@ -54,6 +54,8 @@ public class PlaceService {
         }
         placeRepository.findAllByMeeting(target).forEach(place -> {
             Link link = findService.valid(linkRepository.findByPlace(place),EntityType.Link);
+            List<String> users = new ArrayList<>();
+            userPlaceMappingRepository.findAllByPlace(place).forEach(user -> users.add(user.getUser().getProfileImage()));
             places.add(GetPlaceResponse.builder()
                     .id(place.getId())
                     .naverLink(link.getNaverLink())
@@ -64,6 +66,7 @@ public class PlaceService {
                     .myLike(place.getLikes().contains(targetUser.getId()))
                     .placeStatus(place.getPlaceStatus())
                     .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
+                    .users(users)
                     .build());
         });
         return places;
