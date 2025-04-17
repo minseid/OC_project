@@ -20,8 +20,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
 
     // Configure rate limit: 10 requests per minute
-    private static final int CAPACITY = 10;
-    private static final int REFILL_RATE = 10;
+    private static final int CAPACITY = 10; //버킷의 최대 용량
+    private static final int REFILL_RATE = 10; // 버킷을 한번 채울때마다 채울 개수
     private static final TimeUnit REFILL_UNIT = TimeUnit.MINUTES;
 
     @Override
