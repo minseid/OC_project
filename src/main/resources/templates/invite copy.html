@@ -68,7 +68,7 @@
 <body>
     <div class="position-relative d-flex flex-column align-items-center justify-content-center vh-100 text-center whole_container">
 
-        <img src="https://audiwhere.codns.com/image/audi.png" class="main-image position-absolute" alt="어디앱 이미지">
+        <img src="/image/audi.png" class="main-image position-absolute" alt="어디앱 이미지">
     
         <div class="z-1">
             <div id="title" class="fs-1" style="font-weight: 800;">
@@ -77,7 +77,7 @@
             </div>
         </div>
         
-            <button type="button" class="btn btn-lg text-white col-10 download-btn my-4" onclick="redirectToAppStore()">
+            <button type="button" class="btn btn-lg text-white col-10 download-btn my-4" id="installLink">
                 <i class="fa-solid fa-arrow-up-from-bracket"></i> 어디앱 설치
             </button>
     
@@ -85,12 +85,12 @@
                 어디앱이 있으신가요?
             </div>
     
-            <a href="#" th:href="${inviteLink}" class="fs-6 open-link" onclick="checkDeviceAndRedirect(event)">
+            <a href="#" th:href="${inviteLink}" class="fs-6 open-link" id="openLink">
                 어디앱 열기 <i class="fa-solid fa-chevron-right chevron-icon" style="color: #5e49e2;"></i>
             </a>
     </div>
 
-    <script src="/js/invite.js"></script>
+    <script th:nonce = "${uuid}" src="/js/invite.js"></script>
     <!-- Bootstrap JS (필요하면 추가) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -69,11 +69,15 @@ public class SecurityConfig {
                 )
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; " +
-                                        "img-src 'self' data:; style-src 'self' https://cdnjs.cloudflare.com; " +
-                                        "font-src 'self'; connect-src 'self'; " +
-                                        "frame-ancestors 'self'; form-action 'self'; " +
-                                        "base-uri 'self'; object-src 'none'")
+                                .policyDirectives(
+                                            "default-src 'self'; " +
+                                            "script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://kit.fontawesome.com; " +
+                                            "style-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; " +
+                                            "img-src 'self' data: https://audiwhere.codns.com; " +
+                                            "font-src 'self' https://fonts.gstatic.com https://ka-f.fontawesome.com https://cdn.jsdelivr.net; " +
+                                            "connect-src 'self' https://ka-f.fontawesome.com; " +
+                                            "frame-ancestors 'self'; form-action 'self'; " +
+                                            "base-uri 'self'; object-src 'none'")
                         )
                         .frameOptions(frameOptions -> frameOptions.deny())
                         .xssProtection(xss -> xss.disable())

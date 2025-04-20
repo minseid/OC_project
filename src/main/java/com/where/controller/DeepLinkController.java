@@ -11,6 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -32,7 +34,9 @@ public class DeepLinkController {
 
     @GetMapping("/invite/{id}")
     public String deepLinkWebpage(@PathVariable("id") String inviteLink, Model model) {
+        String uuid = UUID.randomUUID().toString();
         model.addAttribute("inviteLink", "audiwhere://invite/" + inviteLink);
+        model.addAttribute("uuid", uuid);
         return "invite copy";
     }
 
