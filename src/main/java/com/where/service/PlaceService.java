@@ -171,6 +171,7 @@ public class PlaceService {
                                     .meetingId(targetMeeting.getId())
                                     .placeId(savedPlace.getId())
                                     .placeName(savedPlace.getName())
+                                    .user(targetUser.getProfileImage())
                                     .address(savedPlace.getAddress())
                                     .likes(savedPlace.getLikes().size())
                                     .placeStatus(savedPlace.getPlaceStatus())
