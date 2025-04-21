@@ -14,7 +14,5 @@ public class SendAddCommentDto {
 
     private Long commentId;
 
-    private Long userId;
-
     private String description;
 }

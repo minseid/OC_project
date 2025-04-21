@@ -335,7 +335,6 @@ public class PlaceService {
                         fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendAddCommentDto.builder()
                                         .placeId(placeId)
                                         .commentId(saved.getId())
-                                        .userId(userId)
                                         .description(description)
                                         .build(),
                                 MethodType.CommentAdd,SendType.Data);
