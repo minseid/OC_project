@@ -65,7 +65,7 @@ public class PlaceService {
                     .likes(place.getLikes().size())
                     .myLike(place.getLikes().contains(targetUser.getId()))
                     .placeStatus(place.getPlaceStatus())
-                    .together(userPlaceMappingRepository.existsByUserAndPlace(targetUser, place) && userPlaceMappingRepository.findAllByPlace(place).size()>1)
+                    .together(userPlaceMappingRepository.findAllByPlace(place).size()>1)
                     .users(users)
                     .build());
         });
@@ -111,18 +111,20 @@ public class PlaceService {
                         throw new IllegalArgumentException("해당유저는 똑같은 장소를 이미 공유했습니다!");
                     }
                 });
-                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 해당 장소를 공유한 사람이 두명이라면 다른사람에게 같이 찾은장소라고 전송
-                List<UserPlaceMapping> mappings = userPlaceMappingRepository.findAllByPlace(targetPlace);
-                if(mappings.size() == 1) {
-                    try {
-                        fcmService.sendMessageToken(mappings.get(0).getUser().getId(),null,null,SendTogetherPlaceDto.builder()
-                                .placeId(targetPlace.getId())
-                                .together(true)
-                                .build(),MethodType.PlaceTogether,SendType.Data);
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 다른모임구성원에게 같이 찾은장소라고 전송
+                userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(mapping -> {
+                    if(mapping.getUser() != targetUser) {
+                        try {
+                            fcmService.sendMessageToken(mapping.getUser().getId(),null,null,SendTogetherPlaceDto.builder()
+                                    .placeId(targetPlace.getId())
+                                    .together(true)
+                                    .user(targetUser.getProfileImage())
+                                    .build(),MethodType.PlaceTogether,SendType.Data);
+                        } catch (IOException e) {
+                            throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+                        }
                     }
-                }
+                });
                 userPlaceMappingRepository.save(UserPlaceMapping.builder()
                         .user(targetUser)
                         .place(targetPlace)
@@ -169,6 +171,7 @@ public class PlaceService {
                                     .meetingId(targetMeeting.getId())
                                     .placeId(savedPlace.getId())
                                     .placeName(savedPlace.getName())
+                                    .user(targetUser.getProfileImage())
                                     .address(savedPlace.getAddress())
                                     .likes(savedPlace.getLikes().size())
                                     .placeStatus(savedPlace.getPlaceStatus())
@@ -332,7 +335,6 @@ public class PlaceService {
                         fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendAddCommentDto.builder()
                                         .placeId(placeId)
                                         .commentId(saved.getId())
-                                        .userId(userId)
                                         .description(description)
                                         .build(),
                                 MethodType.CommentAdd,SendType.Data);

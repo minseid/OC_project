@@ -13,4 +13,6 @@ public class SendTogetherPlaceDto {
     private Long placeId;
 
     private boolean together;
+
+    private String user;
 }

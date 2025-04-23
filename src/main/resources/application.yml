@@ -93,6 +93,8 @@ server:
     key-store-password: ${SSL_PASSWORD}
     key-store-type: PKCS12
   forward-headers-strategy: native
+  headers:
+    content-security-policy: "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://kit.fontawesome.com 'nonce-${uuid}'; font-src 'self' https://fonts.gstatic.com https://ka-f.fontawesome.com;"
 
 logging:
   level:

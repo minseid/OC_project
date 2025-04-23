@@ -52,7 +52,7 @@ public class MeetingService {
     private final ScheduleRepository scheduleRepository;
     private final FriendRepository friendRepository;
 
-    private final String linkForInvite = "https://audiwhere.codns.com/invite/";
+    private final String linkForInvite = "https://audiwhere.shop/invite/";
     private final LinkRepository linkRepository;
     private final UserPlaceMappingRepository userPlaceMappingRepository;
 
@@ -634,7 +634,7 @@ public class MeetingService {
 
     //초대장조회 메서드
     public GetInviteResponse getInvite(String link) {
-        String targetLink = "https://audiwhere.codns.com/invite/"+link;
+        String targetLink = linkForInvite +link;
         if(meetingRepository.existsByLink(targetLink)) {
             log.info("초대장있음");
             Meeting targetMeeting = meetingRepository.findByLink(targetLink).get();

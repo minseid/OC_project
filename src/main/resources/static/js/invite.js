@@ -81,6 +81,16 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('load', () => {
+    const openLink = document.getElementById('openLink');
+    const installLink = document.getElementById('installLink');
+    if (openLink) {
+        openLink.addEventListener('click', function (event) {
+            checkDeviceAndRedirect(event);
+        });
+    }
+    if(installLink) {
+        installLink.addEventListener('click', redirectToAppStore)
+    }
     adjustImageTransform();
     kakaoToOut();
 })
