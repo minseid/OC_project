@@ -568,9 +568,12 @@ public class MeetingService {
         //id 유효한지 검사
         User acceptUser = findService.valid(userRepository.findById(userId), EntityType.User);
         //모임초대링크로 모임조회
-        Meeting targetMeeting = findService.valid(meetingRepository.findByLink(link),EntityType.Meeting);
+        Meeting targetMeeting = findService.valid(meetingRepository.findByLink(linkForInvite + link),EntityType.Meeting);
         if(targetMeeting.isFinished()) {
             throw new IllegalArgumentException("해당 모임은 종료되었습니다!");
+        }
+        if(userMeetingMappingRepository.existsByUserAndMeeting(acceptUser,targetMeeting)) {
+            throw new IllegalArgumentException("해당유저는 이미 이 모임의 구성원입니다!");
         }
         userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(userMeetingMapping -> {
             //해당 모임 구성원에게 추가된 구성원정보 전송

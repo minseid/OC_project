@@ -16,6 +16,6 @@ public class InviteOkLinkRequest {
     @NotNull(message = "유저정보를 입력해주세요!")
     private Long userId;
 
-    @NotBlank(message = "모임초대링크를 입력해주세요!")
+    @NotBlank(message = "모임초대코드를 입력해주세요!")
     private String link;
 }
