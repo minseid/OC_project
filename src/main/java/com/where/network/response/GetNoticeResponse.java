@@ -2,6 +2,8 @@ package com.where.network.response;
 
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,4 +17,6 @@ public class GetNoticeResponse {
     private String title;
 
     private String content;
+
+    private LocalDate date;
 }

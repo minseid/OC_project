@@ -33,7 +33,7 @@ public class Inquiry extends TimeBaseEntity {
     private List<String> images;
 
     @Column(nullable = false)
-    private Boolean answered;
+    private boolean answered;
 
     @Column
     private String answerContent;

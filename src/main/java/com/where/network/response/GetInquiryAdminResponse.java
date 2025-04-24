@@ -2,6 +2,7 @@ package com.where.network.response;
 
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -27,4 +28,8 @@ public class GetInquiryAdminResponse {
     private boolean answered;
 
     private String answerContent;
+
+    private LocalDate inquiryDate;
+
+    private LocalDate answerDate;
 }

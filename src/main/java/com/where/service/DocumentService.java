@@ -43,8 +43,10 @@ public class DocumentService {
                     .title(inquiry.getTitle())
                     .content(inquiry.getContent())
                     .images(inquiry.getImages())
-                    .answered(inquiry.getAnswered())
+                    .answered(inquiry.isAnswered())
                     .answerContent(inquiry.getAnswerContent())
+                    .inquiryDate(inquiry.getCreatedAt().toLocalDate())
+                    .answerDate(inquiry.getUpdatedAt().toLocalDate())
                     .build());
         });
         return inquiryList;
@@ -72,7 +74,7 @@ public class DocumentService {
                 .content(saved.getContent())
                 .user(saved.getUser())
                 .images(imageList)
-                .answered(saved.getAnswered())
+                .answered(saved.isAnswered())
                 .answerContent(saved.getAnswerContent())
                 .build());
         return AddInquiryResponse.builder()
@@ -80,8 +82,9 @@ public class DocumentService {
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .images(saved.getImages())
-                .answered(saved.getAnswered())
+                .answered(saved.isAnswered())
                 .answerContent(saved.getAnswerContent())
+                .inquiryDate(saved.getCreatedAt().toLocalDate())
                 .build();
     }
 
@@ -110,8 +113,10 @@ public class DocumentService {
                     .title(inquiry.getTitle())
                     .content(inquiry.getContent())
                     .images(inquiry.getImages())
-                    .answered(inquiry.getAnswered())
+                    .answered(inquiry.isAnswered())
                     .answerContent(inquiry.getAnswerContent())
+                    .inquiryDate(inquiry.getCreatedAt().toLocalDate())
+                    .answerDate(inquiry.getUpdatedAt().toLocalDate())
                     .build());
         });
         return responseList;
@@ -136,8 +141,10 @@ public class DocumentService {
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .images(saved.getImages())
-                .answered(saved.getAnswered())
+                .answered(saved.isAnswered())
                 .answerContent(saved.getAnswerContent())
+                .inquiryDate(saved.getCreatedAt().toLocalDate())
+                .answerDate(saved.getUpdatedAt().toLocalDate())
                 .build();
     }
 
@@ -149,6 +156,7 @@ public class DocumentService {
                     .id(notice.getId())
                     .title(notice.getTitle())
                     .content(notice.getContent())
+                    .date(notice.getCreatedAt().toLocalDate())
                     .build());
         });
         return responseList;
@@ -165,6 +173,7 @@ public class DocumentService {
                 .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
+                .date(saved.getCreatedAt().toLocalDate())
                 .build();
     }
 
@@ -202,6 +211,7 @@ public class DocumentService {
                     .id(notice.getId())
                     .title(notice.getTitle())
                     .content(notice.getContent())
+                    .date(notice.getCreatedAt().toLocalDate())
                     .build());
         });
         return responseList;
@@ -218,6 +228,7 @@ public class DocumentService {
                 .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
+                .date(saved.getCreatedAt().toLocalDate())
                 .build();
     }
 
