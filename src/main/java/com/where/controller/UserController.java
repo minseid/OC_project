@@ -5,6 +5,7 @@ import com.where.network.request.KakaoLoginRequest;
 import com.where.network.request.SignUpRequest;
 import com.where.network.response.SignUpResponse;
 import com.where.network.response.UserResponse;
+import com.where.security.mail.MailService;
 import com.where.service.AwsS3Service;
 import com.where.service.KakaoService;
 import com.where.service.UserService;
@@ -25,16 +26,30 @@ public class UserController {
     private final UserService userService;
     private final AwsS3Service awsS3Service;
     private final KakaoService kakaoService;
+    private final MailService mailService;
 
-    // 유저 회원가입
+    // 이메일 인증 후 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
+    public ResponseEntity<?> signupWithVerification(
+            @Valid @RequestBody SignUpRequest signUpRequest,
+            @RequestParam String verificationCode) {
+
+        // 이메일 인증 코드 검증
+        boolean isVerified = mailService.verifyCode(signUpRequest.getEmail(), verificationCode);
+
+        if (!isVerified) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("이메일 인증에 실패했습니다. 인증 코드를 확인해주세요.");
+        }
+
+        // 기존 회원가입 로직 수행
         SignUpResponse signUpResponse = userService.signUp(signUpRequest);
         UserResponse userResponse = UserResponse.builder()
                 .id(signUpResponse.getId())
                 .email(signUpResponse.getEmail())
                 .nickName(signUpResponse.getNickName())
                 .build();
+
         return ResponseEntity.ok(userResponse);
     }
 
@@ -83,6 +98,6 @@ public class UserController {
 
     @PostMapping("/kakao")
     public String kakaoLogin(@RequestBody KakaoLoginRequest request) {
-        return kakaoService.kakaoLogin(request); // 🔥 이제 토큰을 리턴함
+        return kakaoService.kakaoLogin(request);
     }
 }

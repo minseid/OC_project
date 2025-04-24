@@ -1,6 +1,6 @@
 package com.where.security.mail;
 
-import com.google.api.client.util.Value;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,10 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -16,8 +19,31 @@ public class MailService {
 
     private final JavaMailSender javaMailSender;
 
-    @Value("{spring.mail.username}")
-    private static String senderEmail;
+    @Value("${spring.mail.username}")
+    private String senderEmail;
+
+    // Store email verification codes with timestamps (in a real application, use Redis or another cache)
+    private final Map<String, EmailVerification> verificationCodes = new HashMap<>();
+
+    // Inner class to store verification code and timestamp
+    private static class EmailVerification {
+        private final String code;
+        private final long timestamp;
+
+        public EmailVerification(String code) {
+            this.code = code;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public boolean isExpired() {
+            // Code expires after 5 minutes
+            return System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(5);
+        }
+    }
 
     public String createCode() {
         Random random = new Random();
@@ -50,15 +76,40 @@ public class MailService {
     }
 
     // 메일 발송
-    public boolean sendSimpleMessage(String sendEmail) throws MessagingException {
+    public String sendSimpleMessage(String sendEmail) throws MessagingException {
         String authCode = createCode(); // 랜덤 인증번호 생성
+
+        // 인증코드 저장
+        verificationCodes.put(sendEmail, new EmailVerification(authCode));
 
         MimeMessage message = createMail(sendEmail, authCode); // 메일 생성
         try {
             javaMailSender.send(message); // 메일 발송
-            return true;
+            return authCode; // For testing purposes, you might want to return the code
         } catch (MailException e) {
-            return false;
+            throw new RuntimeException("메일 발송에 실패했습니다: " + e.getMessage());
         }
+    }
+
+    // 인증 코드 검증
+    public boolean verifyCode(String email, String code) {
+        EmailVerification verification = verificationCodes.get(email);
+
+        if (verification == null) {
+            return false; // No verification code for this email
+        }
+
+        if (verification.isExpired()) {
+            verificationCodes.remove(email); // Clean up expired code
+            return false; // Code expired
+        }
+
+        boolean isValid = verification.getCode().equals(code);
+
+        if (isValid) {
+            verificationCodes.remove(email); // Clean up used code
+        }
+
+        return isValid;
     }
 }
