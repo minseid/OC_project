@@ -6,6 +6,7 @@ import com.where.constant.MethodType;
 import com.where.constant.SendType;
 import com.where.entity.*;
 import com.where.network.fcm.SendAddMemberDto;
+import com.where.network.fcm.SendInviteDto;
 import com.where.network.response.*;
 import com.where.repository.*;
 import com.where.util.Pair;
@@ -446,9 +447,10 @@ public class MeetingService {
     public void addParticipant(Long meetingId, Long fromId, Long toId) {
 
         //각종 id가 유효한지 검사
-        findService.valid(userRepository.findById(fromId), EntityType.User);
+        User fromUser = findService.valid(userRepository.findById(fromId), EntityType.User);
         findService.valid(userRepository.findById(toId), EntityType.User);
         Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        Schedule targetSchedule = scheduleRepository.findByMeeting(targetMeeting).orElse(null);
         //초대생성
         if(participantRepository.existsByMeetingIdAndFromIdAndToId(meetingId, fromId, toId)) {
             throw new IllegalArgumentException("이미 초대를 했습니다!");
@@ -461,7 +463,16 @@ public class MeetingService {
                 .build());
         //fcm으로 알림전송
         try {
-            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getNickName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
+            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getNickName()+"님이 " + targetMeeting.getTitle() + "모임에 초대하셨어요!", SendInviteDto.builder()
+                    .inviteId(saved.getId())
+                    .meetingId(targetMeeting.getId())
+                    .meetingImage(targetMeeting.getImage())
+                    .fromNickName(fromUser.getNickName())
+                    .meetingTitle(targetMeeting.getTitle())
+                    .scheduleDate(targetSchedule == null? null: targetSchedule.getDate())
+                    .scheduleTime(targetSchedule == null? null: targetSchedule.getTime())
+                    .build()
+                    ,MethodType.MeetingInvite, SendType.NotificationAndData);
         } catch (IOException e) {
             throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
         }

@@ -32,4 +32,6 @@ public class GetPlaceResponse {
     private List<String> users;
 
     private boolean together;
+
+    private long comments;
 }

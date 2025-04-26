@@ -23,6 +23,7 @@ public enum MethodType {
     MeetingEdit(402),
     MeetingDelete(403),
     MeetingAccept(404),
+    MeetingInvite(405),
     FriendAdd(501),
     FriendEdit(502),
     FriendDelete(503);

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,11 +27,15 @@ public class GetCommentResponse {
     @NotBlank
     private String description;
 
+    @NotNull
+    private LocalDateTime createdAt;
+
     public static GetCommentResponse toDto(Comment comment) {
         return GetCommentResponse.builder()
                 .id(comment.getId())
                 .placeId(comment.getPlace().getId())
                 .description(comment.getDescription())
+                .createdAt(comment.getCreatedAt())
                 .build();
     }
 }

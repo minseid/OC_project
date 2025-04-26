@@ -59,7 +59,7 @@ public class PlaceController{
 
     @GetMapping("/api/place")
     public ResponseEntity<List<GetPlaceResponse>> getPlaces(@RequestParam Long meetingId, @RequestParam Long userId) {
-        return ResponseEntity.ok(placeService.getplaces(meetingId, userId));
+        return ResponseEntity.ok(placeService.getPlaces(meetingId, userId));
     }
 
 }

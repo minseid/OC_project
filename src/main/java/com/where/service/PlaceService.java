@@ -39,7 +39,7 @@ public class PlaceService {
     private final String naverMapLink = "nmap://search?query=";
 
     //장소 조회하는 메서드
-    public List<GetPlaceResponse> getplaces(Long meetingId, Long userId) {
+    public List<GetPlaceResponse> getPlaces(Long meetingId, Long userId) {
 
         //id 유효성 검사
         Meeting target = findService.valid(meetingRepository.findById(meetingId),EntityType.Meeting);
@@ -67,6 +67,7 @@ public class PlaceService {
                     .placeStatus(place.getPlaceStatus())
                     .together(userPlaceMappingRepository.findAllByPlace(place).size()>1)
                     .users(users)
+                    .comments(commentRepository.countByPlace(place))
                     .build());
         });
         return places;

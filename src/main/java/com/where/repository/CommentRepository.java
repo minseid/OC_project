@@ -14,4 +14,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     void deleteAllByPlace(Place place);
 
     boolean existsByUser(User user);
+
+    long countByPlace(Place place);
 }
