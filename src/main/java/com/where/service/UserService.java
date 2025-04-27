@@ -122,4 +122,13 @@ public class UserService {
         log.info("User deleted: {}", user.getEmail());
     }
 
+    // UserService 클래스 내
+    public void updateFcmToken(Long userId, String newToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setFcmToken(newToken);
+        userRepository.save(user);
+    }
+
 }

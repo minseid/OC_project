@@ -100,4 +100,12 @@ public class UserController {
     public String kakaoLogin(@RequestBody KakaoLoginRequest request) {
         return kakaoService.kakaoLogin(request);
     }
+
+    // FCM 토큰 업데이트 엔드포인트
+    @PostMapping("/{userId}/fcm-token")
+    public ResponseEntity<Void> updateFcmToken(@PathVariable Long userId,
+                                               @RequestBody String fcmToken) {
+        userService.updateFcmToken(userId, fcmToken);
+        return ResponseEntity.ok().build();
+    }
 }
