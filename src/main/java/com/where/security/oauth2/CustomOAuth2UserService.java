@@ -111,11 +111,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .build();
     }
 
+    // 네이버 사용자 정보 추출 코드 수정
     private OAuthUserInfo extractNaverUserInfo(Map<String, Object> attributes) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
         // 이메일이 null일 수 있으므로 안전하게 처리
         String email = response.containsKey("email") ? (String) response.get("email") : null;
+        if (email == null) {
+            // 이메일이 없을 경우 처리 (예: 임시 이메일 생성)
+            email = "naver_" + UUID.randomUUID().toString() + "@temp.com";
+        }
+
 
         return OAuthUserInfo.builder()
                 .email(email)
@@ -123,6 +129,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .profileImage((String) response.get("profile_image"))
                 .build();
     }
+
     private OAuthUserInfo extractAppleUserInfo(Map<String, Object> attributes) {
         // Apple specific extraction logic
         // Apple usually provides limited info, often just an identifier

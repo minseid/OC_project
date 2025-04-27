@@ -18,8 +18,7 @@ public class KakaoService {
     private final WebClient.Builder webClientBuilder;
     private final UserRepository userRepository;
     private final JWTUtil jwtUtil;
-
-    private WebClient webClient; // 이건 final 빼야 돼 (생성자 말고 init 메서드에서 설정할거라)
+    private WebClient webClient;
 
     @PostConstruct
     public void init() {
@@ -32,9 +31,9 @@ public class KakaoService {
         User user = userRepository.findByEmail(kakaoUserInfo.getEmail())
                 .orElseGet(() -> {
                     User newUser = User.builder()
-//                            .email(kakaoUserInfo.getEmail())
+                            .email(kakaoUserInfo.getEmail())
                             .nickName(kakaoUserInfo.getNickname())
-//                            .profileImage(kakaoUserInfo.getProfileImageUrl())
+                            .profileImage(kakaoUserInfo.getProfileImageUrl())
                             .password("kakao")
                             .role(UserRole.USER)
                             .build();
@@ -44,18 +43,22 @@ public class KakaoService {
         return jwtUtil.generateToken(
                 "user",
                 "kakao",
-                user.getEmail(),
+                user.getEmail() != null ? user.getEmail() : "kakao_" + user.getId(),
                 user.getRole().name(),
                 1000 * 60 * 60 * 24 * 7L // 7일 (ms)
         );
     }
 
     private KakaoUserInfo getUserInfo(String accessToken) {
-        return webClient.get()
-                .uri("/v2/user/me")
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .bodyToMono(KakaoUserInfo.class)
-                .block();
+        try {
+            return webClient.get()
+                    .uri("/v2/user/me")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .bodyToMono(KakaoUserInfo.class)
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("카카오 API 호출 중 오류 발생: " + e.getMessage(), e);
+        }
     }
 }
