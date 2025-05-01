@@ -320,7 +320,7 @@ public class PlaceService {
 
         //해장 장소를 공유한 사용자가 맞는지 확인
         if(userPlaceMappingRepository.existsByUserAndPlace(targetUser,targetPlace)) {
-            if(commentRepository.existsByUser(targetUser)){
+            if(commentRepository.existsByUserAndPlace(targetUser, targetPlace)){
                 throw new IllegalArgumentException("해당유저는 이미 코멘트를 작성했습니다!");
             }
             //코멘트 추가

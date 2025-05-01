@@ -1,6 +1,7 @@
 package com.where.controller;
 
 import com.where.entity.User;
+import com.where.network.request.CheckEmailRequest;
 import com.where.network.request.KakaoLoginRequest;
 import com.where.network.request.SignUpRequest;
 import com.where.network.response.SignUpResponse;
@@ -11,6 +12,8 @@ import com.where.service.KakaoService;
 import com.where.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.DialectOverride;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +24,7 @@ import java.io.IOException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -57,8 +61,8 @@ public class UserController {
 
     // 유저 이메일 중복 확인
     @PostMapping("/checkEmail")
-    public ResponseEntity<String> checkEmail(@RequestBody String email) {
-        boolean isEmailExist = userService.isEmailExist(email);
+    public ResponseEntity<String> checkEmail(@RequestBody CheckEmailRequest request) {
+        boolean isEmailExist = userService.isEmailExist(request.getEmail());
         if (isEmailExist) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("사용중인 이메일입니다.");
         }
