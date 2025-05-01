@@ -32,6 +32,8 @@ public class User extends TimeBaseEntity {
     @Column(name = "fcm_key") // 'fcm_key' 컬럼과 매핑
     private String fcmKey;
 
+    private String fcmToken;
+
     @Column(name = "nick_name", nullable = false) // 'nick_name' 컬럼과 매핑 (스네이크 케이스)
     private String nickName;
 
@@ -41,7 +43,11 @@ public class User extends TimeBaseEntity {
     @Column(name = "password", nullable = false) // 'password' 컬럼과 매핑
     private String password;
 
-    private String provider;
+    @Column
+    private String provider; // "naver", "kakao", "apple" 등 소셜 로그인 제공자
+
+    @Column
+    private String providerId; // 소셜 로그인 제공자의 고유 ID
 
 
     @Enumerated(EnumType.STRING)
