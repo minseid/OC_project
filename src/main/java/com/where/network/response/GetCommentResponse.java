@@ -30,6 +30,9 @@ public class GetCommentResponse {
     @NotNull
     private LocalDateTime createdAt;
 
+    @NotNull
+    private boolean isMine;
+
     public static GetCommentResponse toDto(Comment comment) {
         return GetCommentResponse.builder()
                 .id(comment.getId())

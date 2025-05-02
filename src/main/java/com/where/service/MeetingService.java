@@ -299,6 +299,20 @@ public class MeetingService {
                 .build();
     }
 
+    //모임이미지삭제
+    public void deleteMeetingImage(Long meetingId) {
+        Meeting meeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        awsS3Service.delete(meeting.getLink(),ImageType.Meeting);
+        meetingRepository.save(Meeting.builder()
+                .id(meeting.getId())
+                .title(meeting.getTitle())
+                .description(meeting.getDescription())
+                .link(meeting.getLink())
+                .image(null)
+                .finished(meeting.isFinished())
+                .build());
+    }
+
     //모임종료메서드
     public void finishMeeting(Long meetingId, Long userId) {
 

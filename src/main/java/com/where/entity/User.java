@@ -34,7 +34,8 @@ public class User extends TimeBaseEntity {
 
     private String fcmToken;
 
-    @Column(name = "nick_name", nullable = false) // 'nick_name' 컬럼과 매핑 (스네이크 케이스)
+    //sns회원가입을 위해서 null허용
+    @Column(name = "nick_name") // 'nick_name' 컬럼과 매핑 (스네이크 케이스)
     private String nickName;
 
     @Column(name = "email", nullable = false, unique = true) // 'email' 컬럼과 매핑

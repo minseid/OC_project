@@ -422,9 +422,19 @@ public class PlaceService {
     }
 
     //코멘트 조회 메서드
-    public List<GetCommentResponse> getComment(Long placeId) {
+    public List<GetCommentResponse> getComment(Long placeId, Long userId) {
         List<Comment> target = commentRepository.findAllByPlace(findService.valid(placeRepository.findById(placeId), EntityType.Place));
-        return target.stream().map(GetCommentResponse::toDto).collect(Collectors.toList());
+        List<GetCommentResponse> responses = new ArrayList<>();
+        target.forEach(comment -> {
+            responses.add(GetCommentResponse.builder()
+                    .id(comment.getId())
+                    .placeId(comment.getPlace().getId())
+                    .description(comment.getDescription())
+                    .createdAt(comment.getCreatedAt())
+                    .isMine(comment.getUser().getId().equals(userId))
+                    .build());
+        });
+        return responses;
     }
 
 }

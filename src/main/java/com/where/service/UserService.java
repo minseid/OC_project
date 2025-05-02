@@ -1,21 +1,21 @@
 package com.where.service;
 
+import com.where.constant.EntityType;
+import com.where.constant.ImageType;
 import com.where.constant.UserRole;
 import com.where.entity.User;
 import com.where.network.request.SignUpRequest;
+import com.where.network.response.CommonProfileImageResponse;
 import com.where.network.response.SignUpResponse;
 import com.where.network.response.UserResponse;
 import com.where.repository.UserRepository;
-import com.where.util.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +25,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // Inject PasswordEncoder instead of BCryptPasswordEncoder
+    private final FindService findService;
+    private final AwsS3Service awsS3Service;
 
     //회원가입
     @Transactional
@@ -131,4 +133,36 @@ public class UserService {
         userRepository.save(user);
     }
 
+    //닉네임변경
+    public void editNickName(Long userId, String nickName) {
+        User user = findService.valid(userRepository.findById(userId), EntityType.User);
+        user.setNickName(nickName);
+        userRepository.save(user);
+    }
+
+    //프로필이미지설정
+    public CommonProfileImageResponse setProfileImage(Long userId, MultipartFile profileImage) {
+        User user = findService.valid(userRepository.findById(userId), EntityType.User);
+        String link = awsS3Service.saveProfileImage(profileImage, userId);
+        user.setProfileImage(link);
+        userRepository.save(user);
+        return CommonProfileImageResponse.builder().newLink(link).build();
+    }
+
+    //프로필이미지변경
+    public CommonProfileImageResponse editProfileImage(Long userId, MultipartFile profileImage) {
+        User user = findService.valid(userRepository.findById(userId), EntityType.User);
+        String newLink = awsS3Service.editProfileImage(profileImage,userId, user.getProfileImage());
+        user.setProfileImage(newLink);
+        userRepository.save(user);
+        return CommonProfileImageResponse.builder()
+                .newLink(newLink)
+                .build();
+    }
+
+    //프로필이미지삭제
+    public void deleteProfileImage(Long userId) {
+        User user = findService.valid(userRepository.findById(userId), EntityType.User);
+        awsS3Service.delete(user.getProfileImage(), ImageType.Profile);
+    }
 }

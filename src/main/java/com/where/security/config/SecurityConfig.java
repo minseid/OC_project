@@ -4,6 +4,8 @@ import com.where.security.handler.CustomLogoutFilter;
 import com.where.security.handler.CustomLogoutSuccessHandler;
 import com.where.security.jwt.*;
 import com.where.security.oauth2.CustomOAuth2UserService;
+import com.where.security.oauth2.KakaoOauthService;
+import com.where.security.userdetails.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +13,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -29,17 +33,22 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomLogoutFilter customLogoutFilter;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     public SecurityConfig(JwtFilter jwtFilter, CustomOAuth2UserService customOAuth2UserService,
-                          CustomLogoutFilter customLogoutFilter, CustomLogoutSuccessHandler customLogoutSuccessHandler) {
+                          CustomLogoutFilter customLogoutFilter, CustomLogoutSuccessHandler customLogoutSuccessHandler, CustomUserDetailsService customUserDetailsService, PasswordEncoder passwordEncoder) {
         this.jwtFilter = jwtFilter;
         this.customOAuth2UserService = customOAuth2UserService;
         this.customLogoutFilter = customLogoutFilter;
         this.customLogoutSuccessHandler = customLogoutSuccessHandler;
+        this.customUserDetailsService = customUserDetailsService;
+        this.passwordEncoder = passwordEncoder;
+
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter, KaKaoLoginFilter kaKaoLoginFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -47,12 +56,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
-                .oauth2Login(oauth -> oauth
-                        .defaultSuccessUrl("/home")
-                        .failureUrl("/login?error=true")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                )
+//                .oauth2Login(oauth -> oauth
+//                        .defaultSuccessUrl("/home")
+//                        .failureUrl("/login?error=true")
+//                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+//                )
                 .addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(kaKaoLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
 
@@ -96,7 +106,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "https://audiwhere.codns.com"
+                "https://audiwhere.shop"
         ));        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
@@ -117,8 +127,12 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class).build();
+        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
+                builder.userDetailsService(customUserDetailsService)
+                .passwordEncoder(passwordEncoder);
+        return builder.build();
     }
+
 
     @Bean
     public LoginFilter loginFilter(
@@ -127,5 +141,15 @@ public class SecurityConfig {
             RefreshTokenRepository refreshTokenRepository
     ) {
         return new LoginFilter(authenticationManager, jwtUtil, refreshTokenRepository);
+    }
+
+    @Bean
+    public KaKaoLoginFilter KakakoLoginFilter(
+            AuthenticationManager authenticationManager,
+            JWTUtil jwtUtil,
+            RefreshTokenRepository refreshTokenRepository,
+            KakaoOauthService kakaoOauthService
+    ) {
+        return new KaKaoLoginFilter(authenticationManager, jwtUtil, refreshTokenRepository, kakaoOauthService);
     }
 }

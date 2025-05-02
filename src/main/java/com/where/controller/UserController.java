@@ -1,25 +1,23 @@
 package com.where.controller;
 
-import com.where.entity.User;
 import com.where.network.request.CheckEmailRequest;
-import com.where.network.request.KakaoLoginRequest;
+import com.where.network.request.EditNickNameRequest;
 import com.where.network.request.SignUpRequest;
+import com.where.network.response.CommonProfileImageResponse;
 import com.where.network.response.SignUpResponse;
 import com.where.network.response.UserResponse;
 import com.where.security.mail.MailService;
+import com.where.security.oauth2.KakaoOauthService;
 import com.where.service.AwsS3Service;
 import com.where.service.KakaoService;
 import com.where.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.DialectOverride;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +29,7 @@ public class UserController {
     private final AwsS3Service awsS3Service;
     private final KakaoService kakaoService;
     private final MailService mailService;
+    private final KakaoOauthService kakaoOauthService;
 
     // 이메일 인증 후 회원가입
     @PostMapping("/signup")
@@ -56,8 +55,6 @@ public class UserController {
 
         return ResponseEntity.ok(userResponse);
     }
-
-
 
     // 유저 이메일 중복 확인
     @PostMapping("/checkEmail")
@@ -85,25 +82,39 @@ public class UserController {
      * 새 프로필 이미지 업로드
      */
     @PostMapping("/{userId}/upload")
-    public String uploadProfileImage(@PathVariable Long userId,
+    public ResponseEntity<CommonProfileImageResponse> uploadProfileImage(@PathVariable Long userId,
                                      @RequestPart("file") MultipartFile multipartFile) {
-        return awsS3Service.saveProfileImage(multipartFile, userId);
+        return ResponseEntity.ok(userService.setProfileImage(userId, multipartFile));
     }
 
     /**
      * 기존 프로필 이미지 수정
      */
     @PutMapping("/{userId}/edit")
-    public String editProfileImage(@PathVariable Long userId,
-                                   @RequestPart("file") MultipartFile multipartFile,
-                                   @RequestParam("currentImageLink") String currentImageLink) {
-        return awsS3Service.editProfileImage(multipartFile, userId, currentImageLink);
+    public ResponseEntity<CommonProfileImageResponse> editProfileImage(@PathVariable Long userId,
+                                                                       @RequestPart("file") MultipartFile multipartFile) {
+        return ResponseEntity.ok(userService.editProfileImage(userId, multipartFile));
     }
 
-    @PostMapping("/kakao")
-    public String kakaoLogin(@RequestBody KakaoLoginRequest request) {
-        return kakaoService.kakaoLogin(request);
+    //프로필이미지삭제
+    @DeleteMapping("/{userId}/delete")
+    public ResponseEntity<Void> deleteProfileImage(@PathVariable Long userId) {
+        userService.deleteProfileImage(userId);
+        return ResponseEntity.ok().build();
     }
+
+    //닉네임변경
+    @PutMapping("/{userId}/nickname")
+    public ResponseEntity<Void> editNickName(@PathVariable Long userId, @RequestBody EditNickNameRequest request) {
+        userService.editNickName(userId, request.getNickName());
+        return ResponseEntity.ok().build();
+    }
+
+
+//    @PostMapping("/kakao")
+//    public String kakaoLogin(@RequestBody KakaoLoginRequest request) {
+//        return kakaoService.kakaoLogin(request);
+//    }
 
     // FCM 토큰 업데이트 엔드포인트
     @PostMapping("/{userId}/fcm-token")

@@ -53,8 +53,8 @@ public class PlaceController{
     }
 
     @GetMapping("/api/place/comment/{id}")
-    public ResponseEntity<List<GetCommentResponse>> getComments(@PathVariable Long id) {
-        return ResponseEntity.ok(placeService.getComment(id));
+    public ResponseEntity<List<GetCommentResponse>> getComments(@RequestParam Long placeId, @RequestParam Long userId) {
+        return ResponseEntity.ok(placeService.getComment(placeId, userId));
     }
 
     @GetMapping("/api/place")

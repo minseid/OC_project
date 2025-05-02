@@ -2,8 +2,10 @@ package com.where.security.userdetails;
 
 import com.where.entity.User;
 import com.where.service.UserService;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -12,8 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Getter
-@Component
 @EqualsAndHashCode
+@Slf4j
 public class CustomUserDetails implements UserDetails {
 
     private final UserService userService;
@@ -36,6 +38,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
+        log.error("패스워드가져오기 : " + user.getPassword());
         return user.getPassword();
     }
 

@@ -39,6 +39,12 @@ public class MeetingController{
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/api/meeting/image/{meetingId}")
+    public ResponseEntity<Void> deleteMeetingImage(@PathVariable Long meetingId) {
+        meetingService.deleteMeetingImage(meetingId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/api/meeting/participant/{id}")
     public ResponseEntity<List<GetParticipantsResponse>> getParticipants(@PathVariable("id") Long meetingId) {
         List<GetParticipantsResponse> participants = meetingService.getParticipants(meetingId);
