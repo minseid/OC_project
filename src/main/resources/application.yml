@@ -3,7 +3,6 @@ spring:
     name: Where
   jwt:
     secret: ${JWT_SECRET}
-
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://where-db1.c3sewig4iszd.ap-northeast-2.rds.amazonaws.com:3306/where_db

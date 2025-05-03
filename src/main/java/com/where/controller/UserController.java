@@ -1,5 +1,6 @@
 package com.where.controller;
 
+import com.where.constant.EmailVerify;
 import com.where.network.request.CheckEmailRequest;
 import com.where.network.request.EditNickNameRequest;
 import com.where.network.request.SignUpRequest;
@@ -38,9 +39,9 @@ public class UserController {
             @RequestParam String verificationCode) {
 
         // 이메일 인증 코드 검증
-        boolean isVerified = mailService.verifyCode(signUpRequest.getEmail(), verificationCode);
+        EmailVerify isVerified = mailService.verifyCode(signUpRequest.getEmail(), verificationCode);
 
-        if (!isVerified) {
+        if (!isVerified.equals(EmailVerify.Verified)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("이메일 인증에 실패했습니다. 인증 코드를 확인해주세요.");
         }

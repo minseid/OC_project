@@ -1,5 +1,6 @@
 package com.where.security.mail;
 
+import com.where.constant.EmailVerify;
 import org.springframework.beans.factory.annotation.Value;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -40,8 +41,8 @@ public class MailService {
         }
 
         public boolean isExpired() {
-            // Code expires after 5 minutes
-            return System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(5);
+            // Code expires after 10 minutes
+            return System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(10);
         }
     }
 
@@ -67,11 +68,31 @@ public class MailService {
         message.setRecipients(MimeMessage.RecipientType.TO, mail);
         message.setSubject("이메일 인증");
         String body = "";
-        body += "<h3>요청하신 인증 번호입니다.</h3>";
-        body += "<h1>" + authCode + "</h1>";
-        body += "<h3>감사합니다.</h3>";
+        body += "<!DOCTYPE html>";
+        body += "<html>";
+        body += "<head>";
+        body += "</head>";
+        body += "<body style=\"text-align: center;\">";
+        body += "  <table style=\"width: 80vw; margin: 0 auto; border-collapse: collapse;\">";
+        body += "    <tr>";
+        body += "      <td>";
+        body += "        <img src=\"https://audiwhere.shop/image/emailTop.png\" alt=\"이미지\" style=\"display: block; width: 100%; height: auto;\">";
+        body += "      </td>";
+        body += "    </tr>";
+        body += "    <tr>";
+        body += "      <td style=\"padding: 20px 0; text-align: center; color: black;\">";
+        body += "        <div style=\"font-size: calc(3vw + 0.5em); font-weight: 500; margin-bottom: calc(2vw + 0.5em)\"></div>";
+        body += "        <div style=\"font-size: calc(1.5vw + 0.5em); font-weight: 500;\">확인코드</div>";
+        body += "        <div style=\"font-size: calc(4.5vw + 1em); font-weight: 700; margin-bottom: calc(1vw + 0.2em);\">" + authCode + "</div>";
+        body += "        <div style=\"font-size: calc(1vw + 0.3em); margin-bottom: 15vw; color:gray;\">이 코드는 전송 10분 후에 만료됩니다.</div>";
+        body += "        <div style=\"font-size: calc(0.7vw + 0.3em);  color:gray; margin-bottom: calc(1vw + 0.2em);\">본 인증 코드는 이메일 인증 용도로만 사용되며, 안전하게 보호됩니다.</div>";
+        body += "        <div style=\"font-size: calc(0.7vw + 0.3em);  color:gray;\">타인과 공유하지마세요.</div>";
+        body += "      </td>";
+        body += "    </tr>";
+        body += "  </table>";
+        body += "</body>";
+        body += "</html>";
         message.setText(body, "UTF-8", "html");
-
         return message;
     }
 
@@ -92,24 +113,27 @@ public class MailService {
     }
 
     // 인증 코드 검증
-    public boolean verifyCode(String email, String code) {
+    public EmailVerify verifyCode(String email, String code) {
         EmailVerification verification = verificationCodes.get(email);
 
         if (verification == null) {
-            return false; // No verification code for this email
+            return EmailVerify.NotSend; // No verification code for this email
         }
 
         if (verification.isExpired()) {
             verificationCodes.remove(email); // Clean up expired code
-            return false; // Code expired
+            return EmailVerify.Expired; // Code expired
         }
 
         boolean isValid = verification.getCode().equals(code);
 
         if (isValid) {
             verificationCodes.remove(email); // Clean up used code
+            return EmailVerify.Verified;
+        } else {
+            return EmailVerify.NotVerified;
         }
 
-        return isValid;
+
     }
 }

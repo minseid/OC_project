@@ -1,5 +1,6 @@
 package com.where.security.mail;
 
+import com.where.constant.EmailVerify;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,8 @@ class MailController {
 
     // 인증 코드 검증 엔드포인트
     @PostMapping("/verify")
-    public ResponseEntity<Boolean> verifyCode(@RequestBody VerificationRequest request) {
-        boolean isValid = mailService.verifyCode(request.getEmail(), request.getCode());
+    public ResponseEntity<EmailVerify> verifyCode(@RequestBody VerificationRequest request) {
+        EmailVerify isValid = mailService.verifyCode(request.getEmail(), request.getCode());
         return ResponseEntity.ok(isValid);
     }
 
