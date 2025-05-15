@@ -98,6 +98,7 @@ public class KakaoOauthService extends DefaultOAuth2UserService {
                         .password(passwordEncoder.encode("SOCIAL_LOGIN_" + UUID.randomUUID())) //sns회원가입은 비밀번호 랜덤
                         .role(UserRole.USER)
                         .build()))
+                        .profileImage(userDetail.get(1))
                         .build();
             } else {
                 String userEmail = getEmail(accessToken);
@@ -109,8 +110,14 @@ public class KakaoOauthService extends DefaultOAuth2UserService {
                                 .password(passwordEncoder.encode("SOCIAL_LOGIN_" + UUID.randomUUID())) //sns회원가입은 비밀번호 랜덤
                                 .role(UserRole.USER)
                                 .build()))
+                        .profileImage(null)
                         .build();
             }
+        } else if (user.get().getNickName()==null){
+            return KaKaoLoginDto.builder()
+                    .signUp(true)
+                    .user(user.get())
+                    .build();
         } else {
             return KaKaoLoginDto.builder()
                     .signUp(false)

@@ -15,4 +15,6 @@ public class KaKaoLoginDto {
     private User user;
 
     private boolean signUp;
+
+    private String profileImage;
 }

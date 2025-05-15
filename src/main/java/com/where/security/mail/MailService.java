@@ -98,6 +98,9 @@ public class MailService {
 
     // 메일 발송
     public String sendSimpleMessage(String sendEmail) throws MessagingException {
+        if(!sendEmail.contains("@")) {
+            throw new MessagingException("메일형식이 올바르지 않습니다!");
+        }
         String authCode = createCode(); // 랜덤 인증번호 생성
 
         // 인증코드 저장

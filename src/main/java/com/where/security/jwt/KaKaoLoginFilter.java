@@ -90,7 +90,7 @@ public class KaKaoLoginFilter extends OncePerRequestFilter {
                     // 성공 응답 (본문에는 토큰 정보 없이 성공 메시지만 포함)
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("{\"userId\" : " + loginDto.getUser().getId() + ", \"signUp\" : " + loginDto.isSignUp() + "}");
+                    response.getWriter().write("{\"userId\" : " + loginDto.getUser().getId() + ", \"signUp\" : " + loginDto.isSignUp() + ", \"profileImage\":" + loginDto.getProfileImage() + "}");
                 } catch (AuthenticationException e) {
                     // 기존 인증 실패 처리 유지
                     SecurityContextHolder.clearContext();

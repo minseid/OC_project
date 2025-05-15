@@ -20,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
@@ -35,9 +37,10 @@ public class UserController {
     // 이메일 인증 후 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signupWithVerification(
-            @Valid @RequestBody SignUpRequest signUpRequest,
-            @RequestParam String verificationCode) {
+            @Valid @RequestBody SignUpRequest signUpRequest) {
 
+        /* 프론트요청으로 인한 삭제
+        이미 이메일코드를 검증하는 api가 존재하므로 삭제요청
         // 이메일 인증 코드 검증
         EmailVerify isVerified = mailService.verifyCode(signUpRequest.getEmail(), verificationCode);
 
@@ -45,6 +48,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("이메일 인증에 실패했습니다. 인증 코드를 확인해주세요.");
         }
+        */
 
         // 기존 회원가입 로직 수행
         SignUpResponse signUpResponse = userService.signUp(signUpRequest);
@@ -100,6 +104,8 @@ public class UserController {
     //프로필이미지삭제
     @DeleteMapping("/{userId}/delete")
     public ResponseEntity<Void> deleteProfileImage(@PathVariable Long userId) {
+        LocalDate date = LocalDate.now();
+        date.toString();
         userService.deleteProfileImage(userId);
         return ResponseEntity.ok().build();
     }

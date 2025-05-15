@@ -152,17 +152,37 @@ public class UserService {
     //프로필이미지변경
     public CommonProfileImageResponse editProfileImage(Long userId, MultipartFile profileImage) {
         User user = findService.valid(userRepository.findById(userId), EntityType.User);
-        String newLink = awsS3Service.editProfileImage(profileImage,userId, user.getProfileImage());
-        user.setProfileImage(newLink);
-        userRepository.save(user);
-        return CommonProfileImageResponse.builder()
-                .newLink(newLink)
-                .build();
+        if(user.getProfileImage()!=null && user.getProfileImage().contains("where-bucket32.s3.ap-northeast-2.amazonaws.com")) {
+            String newLink = awsS3Service.editProfileImage(profileImage,userId, user.getProfileImage());
+            user.setProfileImage(newLink);
+            userRepository.save(user);
+            return CommonProfileImageResponse.builder()
+                    .newLink(newLink)
+                    .build();
+        } else if (user.getProfileImage()!=null) {
+            String newLink = awsS3Service.saveProfileImage(profileImage,userId);
+            user.setProfileImage(newLink);
+            userRepository.save(user);
+            return CommonProfileImageResponse.builder()
+                    .newLink(newLink)
+                    .build();
+        } else {
+            throw new IllegalArgumentException("기본프로필이미지 사용중입니다!");
+        }
     }
 
     //프로필이미지삭제
     public void deleteProfileImage(Long userId) {
         User user = findService.valid(userRepository.findById(userId), EntityType.User);
-        awsS3Service.delete(user.getProfileImage(), ImageType.Profile);
+        if(user.getProfileImage() != null && user.getProfileImage().contains("where-bucket32.s3.ap-northeast-2.amazonaws.com")) {
+            awsS3Service.delete(user.getProfileImage(), ImageType.Profile);
+            user.setProfileImage(null);
+            userRepository.save(user);
+        } else if (user.getProfileImage() != null) {
+            user.setProfileImage(null);
+            userRepository.save(user);
+        } else {
+            return;
+        }
     }
 }

@@ -52,7 +52,7 @@ public class PlaceController{
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/api/place/comment/{id}")
+    @GetMapping("/api/place/comment")
     public ResponseEntity<List<GetCommentResponse>> getComments(@RequestParam Long placeId, @RequestParam Long userId) {
         return ResponseEntity.ok(placeService.getComment(placeId, userId));
     }
