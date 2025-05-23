@@ -48,7 +48,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter, KaKaoLoginFilter kaKaoLoginFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter, KaKaoLoginFilter kaKaoLoginFilter, NaverLoginFilter naverLoginFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -63,6 +63,7 @@ public class SecurityConfig {
 //                )
                 .addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(kaKaoLoginFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(naverLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
 

@@ -12,6 +12,7 @@ import com.where.security.oauth2.KakaoOauthService;
 import com.where.service.AwsS3Service;
 import com.where.service.KakaoService;
 import com.where.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -129,5 +130,20 @@ public class UserController {
                                                @RequestBody String fcmToken) {
         userService.updateFcmToken(userId, fcmToken);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/code")
+    public ResponseEntity<String> getState(){
+        return ResponseEntity.ok(userService.generateState());
+    }
+
+    @GetMapping("/naver/login")
+    public ResponseEntity<String> getNaver(HttpServletRequest request){
+        return ResponseEntity.ok(request.getParameter("code"));
+    }
+
+    @PostMapping("/naver/login")
+    public ResponseEntity<String> getNaverPost(HttpServletRequest request){
+        return ResponseEntity.ok(request.getParameter("code"));
     }
 }

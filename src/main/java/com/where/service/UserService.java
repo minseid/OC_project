@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 @Service
 @RequiredArgsConstructor
 @Log4j2(topic = "UserService")
@@ -65,6 +68,7 @@ public class UserService {
 
         // Return response with email and name
         return SignUpResponse.builder()
+                .id(savedUser.getId())
                 .email(savedUser.getEmail())
                 .name(savedUser.getName())
                 .nickName(savedUser.getNickName())
@@ -89,6 +93,7 @@ public class UserService {
 
         // Return user details in the response format
         return UserResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .nickName(user.getNickName()) // Assuming you have a nickname
                 .profileImage(user.getProfileImage()) // Assuming you have profile image
@@ -184,5 +189,10 @@ public class UserService {
         } else {
             return;
         }
+    }
+
+    public String generateState() {
+        SecureRandom random = new SecureRandom();
+        return new BigInteger(130, random).toString(32);
     }
 }

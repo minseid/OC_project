@@ -10,7 +10,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class SignUpResponse {
-    private String id;
+    private Long id;
     private String nickName;
     private String email;
     private String name;

@@ -1,17 +1,15 @@
 package com.where.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.where.entity.User;
-import com.where.security.oauth2.CustomOAuth2UserService;
 import com.where.security.oauth2.KaKaoLoginDto;
 import com.where.security.oauth2.KakaoOauthService;
+import com.where.security.oauth2.NaverLoginDto;
+import com.where.security.oauth2.NaverOauthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,21 +26,21 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class KaKaoLoginFilter extends OncePerRequestFilter {
+public class NaverLoginFilter extends OncePerRequestFilter {
 
-    private static final String LOGIN_PATH = "/api/user/kakao/login";
+    private static final String LOGIN_PATH = "/api/user/naver/login";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final KakaoOauthService kakaoOauthService;
+    private final NaverOauthService naverOauthService;
 
-    public KaKaoLoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository, KakaoOauthService kakaoOauthService) {
+    public NaverLoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository, NaverOauthService naverOauthService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
-        this.kakaoOauthService = kakaoOauthService;
+        this.naverOauthService = naverOauthService;
     }
 
     @Override
@@ -50,21 +48,21 @@ public class KaKaoLoginFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         if (request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().equals(LOGIN_PATH)) {
-            String kakaoAccessToken;
-            String kakaoRefreshToken;
+            String naverAccessToken;
+            String naverRefreshToken;
 
             if(request.getHeader("Authorization") != null && request.getHeader("refreshToken") != null) {
-                kakaoAccessToken = request.getHeader("Authorization");
-                kakaoRefreshToken = request.getHeader("refreshToken");
+                naverAccessToken = request.getHeader("Authorization");
+                naverRefreshToken = request.getHeader("refreshToken");
                 // 나머지 인증 로직은 동일
-                KaKaoLoginDto loginDto = kakaoOauthService.login(kakaoAccessToken, kakaoRefreshToken);
+                NaverLoginDto loginDto = naverOauthService.login(naverAccessToken, naverRefreshToken);
                 // targetUser가 null일 때 처리
                 if (loginDto.getUser() == null) {
                     SecurityContextHolder.clearContext();
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("{\"error\": \"Kakao login failed: User not found or authentication error\"}");
+                    response.getWriter().write("{\"error\": \"Naver login failed: User not found or authentication error\"}");
                     return;
                 }
                 String username = loginDto.getUser().getEmail();
@@ -90,7 +88,7 @@ public class KaKaoLoginFilter extends OncePerRequestFilter {
                     // 성공 응답 (본문에는 토큰 정보 없이 성공 메시지만 포함)
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("{\"userId\" : " + loginDto.getUser().getId() + ", \"signUp\" : " + loginDto.isSignUp() + ", \"profileImage\": \"" + loginDto.getProfileImage() + "\"\n}");
+                    response.getWriter().write("{\"userId\": " + loginDto.getUser().getId() + ", \"signUp\": " + loginDto.isSignUp() + ", \"profileImage\": \"" + loginDto.getProfileImage() + "\"\n}");
                 } catch (AuthenticationException e) {
                     // 기존 인증 실패 처리 유지
                     SecurityContextHolder.clearContext();

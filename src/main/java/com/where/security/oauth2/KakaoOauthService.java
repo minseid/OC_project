@@ -113,15 +113,11 @@ public class KakaoOauthService extends DefaultOAuth2UserService {
                         .profileImage(null)
                         .build();
             }
-        } else if (user.get().getNickName()==null){
-            return KaKaoLoginDto.builder()
-                    .signUp(true)
-                    .user(user.get())
-                    .build();
         } else {
             return KaKaoLoginDto.builder()
-                    .signUp(false)
+                    .signUp(user.get().getNickName()==null? true: false)
                     .user(user.get())
+                    .profileImage(user.get().getProfileImage())
                     .build();
         }
     }
