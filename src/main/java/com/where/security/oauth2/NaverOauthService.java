@@ -105,7 +105,7 @@ public class NaverOauthService extends DefaultOAuth2UserService {
             }
         } else {
             return NaverLoginDto.builder()
-                    .signUp(user.get().getNickName()==null? true: false)
+                    .signUp(user.get().getNickName() == null)
                     .user(user.get())
                     .profileImage(user.get().getProfileImage())
                     .build();

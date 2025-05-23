@@ -3,6 +3,7 @@ package com.where.security.config;
 import com.where.security.handler.CustomLogoutFilter;
 import com.where.security.handler.CustomLogoutSuccessHandler;
 import com.where.security.jwt.*;
+import com.where.security.oauth2.AppleOauthService;
 import com.where.security.oauth2.CustomOAuth2UserService;
 import com.where.security.oauth2.KakaoOauthService;
 import com.where.security.userdetails.CustomUserDetailsService;
@@ -48,7 +49,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter, KaKaoLoginFilter kaKaoLoginFilter, NaverLoginFilter naverLoginFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter, KaKaoLoginFilter kaKaoLoginFilter, NaverLoginFilter naverLoginFilter, AppleOauthService appleOauthService, AppleLoginFilter appleLoginFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -64,6 +65,7 @@ public class SecurityConfig {
                 .addFilterBefore(loginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(kaKaoLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(naverLoginFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(appleLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
 

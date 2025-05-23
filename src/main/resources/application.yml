@@ -101,3 +101,7 @@ logging:
 
 dotenv:
   enabled: true
+
+my:
+  apple:
+    team-id: ${APPLE_TEAM_ID}

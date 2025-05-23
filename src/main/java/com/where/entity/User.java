@@ -62,4 +62,10 @@ public class User extends TimeBaseEntity {
     @LastModifiedDate
     @Column(name = "updated_at") // 'updated_at' 컬럼과 매핑 (스네이크 케이스)
     private LocalDateTime updatedAt;
+
+    @Column
+    private String appleAccessToken;
+
+    @Column(columnDefinition = "TEXT")
+    private String appleRefreshToken;
 }

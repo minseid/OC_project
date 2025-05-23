@@ -50,7 +50,6 @@ public class UserController {
                     .body("이메일 인증에 실패했습니다. 인증 코드를 확인해주세요.");
         }
         */
-
         // 기존 회원가입 로직 수행
         SignUpResponse signUpResponse = userService.signUp(signUpRequest);
         UserResponse userResponse = UserResponse.builder()
@@ -58,7 +57,6 @@ public class UserController {
                 .email(signUpResponse.getEmail())
                 .nickName(signUpResponse.getNickName())
                 .build();
-
         return ResponseEntity.ok(userResponse);
     }
 
