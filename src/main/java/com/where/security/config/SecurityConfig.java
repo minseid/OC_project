@@ -1,11 +1,13 @@
 package com.where.security.config;
 
+import com.where.repository.UserRepository;
 import com.where.security.handler.CustomLogoutFilter;
 import com.where.security.handler.CustomLogoutSuccessHandler;
 import com.where.security.jwt.*;
 import com.where.security.oauth2.AppleOauthService;
 import com.where.security.oauth2.CustomOAuth2UserService;
 import com.where.security.oauth2.KakaoOauthService;
+import com.where.security.oauth2.NaverOauthService;
 import com.where.security.userdetails.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -141,9 +143,9 @@ public class SecurityConfig {
     public LoginFilter loginFilter(
             AuthenticationManager authenticationManager,
             JWTUtil jwtUtil,
-            RefreshTokenRepository refreshTokenRepository
-    ) {
-        return new LoginFilter(authenticationManager, jwtUtil, refreshTokenRepository);
+            RefreshTokenRepository refreshTokenRepository,
+            UserRepository userRepository) {
+        return new LoginFilter(authenticationManager, jwtUtil, refreshTokenRepository, userRepository);
     }
 
     @Bean
@@ -154,5 +156,25 @@ public class SecurityConfig {
             KakaoOauthService kakaoOauthService
     ) {
         return new KaKaoLoginFilter(authenticationManager, jwtUtil, refreshTokenRepository, kakaoOauthService);
+    }
+
+    @Bean
+    public NaverLoginFilter naverLoginFilter(
+            AuthenticationManager authenticationManager,
+            JWTUtil jwtUtil,
+            RefreshTokenRepository refreshTokenRepository,
+            NaverOauthService naverOauthService
+    ) {
+        return new NaverLoginFilter(authenticationManager, jwtUtil, refreshTokenRepository, naverOauthService);
+    }
+
+    @Bean
+    public AppleLoginFilter appleLoginFilter(
+            AuthenticationManager authenticationManager,
+            JWTUtil jwtUtil,
+            RefreshTokenRepository refreshTokenRepository,
+            AppleOauthService appleOauthService
+    ) {
+        return new AppleLoginFilter(authenticationManager, jwtUtil, refreshTokenRepository, appleOauthService);
     }
 }

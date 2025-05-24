@@ -105,3 +105,4 @@ dotenv:
 my:
   apple:
     team-id: ${APPLE_TEAM_ID}
+    key-id: ${APPLE_KEY_ID}

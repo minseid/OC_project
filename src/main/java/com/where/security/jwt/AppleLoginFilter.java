@@ -50,7 +50,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
         if (request.getMethod().equalsIgnoreCase("POST") && request.getRequestURI().equals(LOGIN_PATH)) {
             String appleCode;
 
-            if(request.getHeader("Authorization") != null && request.getHeader("refreshToken") != null) {
+            if(request.getHeader("Authorization") != null) {
                 appleCode = request.getHeader("Authorization");
                 // 나머지 인증 로직은 동일
                 AppleUserDto loginDto = appleOauthService.login(appleCode);
@@ -86,7 +86,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
                     // 성공 응답 (본문에는 토큰 정보 없이 성공 메시지만 포함)
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("{\"userId\": " + loginDto.getUser().getId() + ", \"signUp\": " + loginDto.isSignUp() + "\"\n}");
+                    response.getWriter().write("{\"userId\" : " + loginDto.getUser().getId() + ", \"signUp\" : " + loginDto.isSignUp() + ", \"profileImage\": " + (loginDto.getProfileImage()==null? null: "\"" + loginDto.getProfileImage() + "\"") + "\n}");
                 } catch (AuthenticationException e) {
                     // 기존 인증 실패 처리 유지
                     SecurityContextHolder.clearContext();

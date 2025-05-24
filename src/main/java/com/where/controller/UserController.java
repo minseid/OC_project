@@ -139,9 +139,4 @@ public class UserController {
     public ResponseEntity<String> getNaver(HttpServletRequest request){
         return ResponseEntity.ok(request.getParameter("code"));
     }
-
-    @PostMapping("/naver/login")
-    public ResponseEntity<String> getNaverPost(HttpServletRequest request){
-        return ResponseEntity.ok(request.getParameter("code"));
-    }
 }

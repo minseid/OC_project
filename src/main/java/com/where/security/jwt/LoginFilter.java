@@ -1,6 +1,7 @@
 package com.where.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.where.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,11 +27,13 @@ public class LoginFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class LoginFilter extends OncePerRequestFilter {
                 // 성공 응답 (본문에는 토큰 정보 없이 성공 메시지만 포함)
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                response.getWriter().write("{\"success\": true, \"message\": \"로그인 성공\"}");
+                response.getWriter().write("{\"success\": true, \"message\": \"로그인 성공\", \"userId\": " + userRepository.findByEmail(username).get().getId()+ "}");
             } catch (AuthenticationException e) {
                 // 기존 인증 실패 처리 유지
                 SecurityContextHolder.clearContext();

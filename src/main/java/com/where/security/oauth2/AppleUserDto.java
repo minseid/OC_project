@@ -16,4 +16,6 @@ public class AppleUserDto {
     private boolean signUp;
 
     private User user;
+
+    private String profileImage;
 }
