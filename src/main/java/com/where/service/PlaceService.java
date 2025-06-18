@@ -11,13 +11,21 @@ import com.where.network.response.*;
 import com.where.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +45,7 @@ public class PlaceService {
     private final UserMeetingMappingRepository userMeetingMappingRepository;
     private final UserPlaceMappingRepository userPlaceMappingRepository;
     private final String naverMapLink = "nmap://search?query=";
+    private final RestTemplate restTemplate;
 
     //장소 조회하는 메서드
     public List<GetPlaceResponse> getPlaces(Long meetingId, Long userId) {
@@ -85,6 +94,94 @@ public class PlaceService {
         if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
             throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
         }
+        //카카오맵 api 이용해 해당 장소 정보 검색
+        PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
+        log.warn(placeAddressDto.toString());
+        //해당 모임과 좌표를 기준으로 저장되어있는 장소 전부 불러와서 이름 겹치는지 확인
+        List<Place> targetPlaces = placeRepository.findAllByXAndYAndMeeting(placeAddressDto.getX(), placeAddressDto.getY(),targetMeeting);
+        log.warn(targetPlaces.toString());
+        if (targetPlaces.isEmpty()) {
+            //해당 좌표 기준으로 저장되어있는 장소 없으면 새로 추가
+            return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto),false);
+        } else {
+            //해당 좌표 기준으로 저장되어 있는 장소 중 이름 겹치는 것으로만 필터
+            List<Place> places = targetPlaces.stream()
+                    .filter(place -> noBlankUpper(place.getName()).contains(noBlankUpper(name)) || noBlankUpper(name).contains(noBlankUpper(place.getName())))
+                    .toList();
+            if (places.isEmpty()) {
+                //해당 이름으로된 장소가 없으므로 새로 추가
+                return addPlaceResponse(newPlace(targetUser, targetMeeting, name, address, placeAddressDto),false);
+            } else {
+                //해당 장소가 있으므로 사용자만 추가
+                Place targetPlace = places.get(0);
+                //해당장소를 공유한 유저에 targetUser가 있는지 확인
+                List<UserPlaceMapping> users = userPlaceMappingRepository.findAllByPlace(targetPlace);
+                users.forEach(userPlaceMapping -> {
+                    if(userPlaceMapping.getUser() == targetUser) {
+                        throw new IllegalArgumentException("해당유저는 똑같은 장소를 이미 공유했습니다!");
+                    }
+                });
+                //해당장소가 있다는거는 이미 공유한 사람이 있다는 것이므로 저장 후 다른모임구성원에게 같이 찾은장소라고 전송
+                userMeetingMappingRepository.findAllByMeeting(targetMeeting).forEach(mapping -> {
+                    if(mapping.getUser() != targetUser) {
+                        try {
+                            fcmService.sendMessageToken(mapping.getUser().getId(),null,null,SendTogetherPlaceDto.builder()
+                                    .placeId(targetPlace.getId())
+                                    .together(true)
+                                    .user(targetUser.getProfileImage())
+                                    .build(),MethodType.PlaceTogether,SendType.Data);
+                        } catch (IOException e) {
+                            throw new IllegalArgumentException("실시간 데이터 전송 실패! : " + e.getMessage());
+                        }
+                    }
+                });
+                userPlaceMappingRepository.save(UserPlaceMapping.builder()
+                        .user(targetUser)
+                        .place(targetPlace)
+                        .build());
+                return addPlaceResponse(findService.valid(linkRepository.findByPlace(targetPlace),EntityType.Link),true);
+            }
+        }
+    }
+
+    //장소를 추가하는 메서드 - 애플
+    public AddPlaceResponse addPlaceApple(Long meetingId, Long userId, String name, String link) {
+        log.warn("장소추가시작");
+        //각종 id 유효성 확인
+        Meeting targetMeeting = findService.valid(meetingRepository.findById(meetingId), EntityType.Meeting);
+        log.warn(targetMeeting.toString());
+        log.warn("유저찾기시작");
+        User targetUser = findService.valid(userRepository.findById(userId), EntityType.User);
+        log.warn(targetUser.toString());
+        if(!userMeetingMappingRepository.existsByUserAndMeeting(targetUser, targetMeeting)) {
+            throw new IllegalArgumentException("해당 유저는 이 모임의 구성원이 아닙니다!");
+        }
+        //해당 링크로 get요청후 주소 추출
+        String address = "";
+        HttpHeaders checkAddressHeaders = new HttpHeaders();
+        HttpEntity<String> checkAddressEntity = new HttpEntity<>(checkAddressHeaders);
+        UriComponentsBuilder checkAddressUrlBuilder = UriComponentsBuilder.fromHttpUrl(link);
+        String checkAddressUrl = checkAddressUrlBuilder.build().toUriString();
+        try {
+            ResponseEntity<String> checkAddressResponse = restTemplate.exchange(
+                    checkAddressUrl,
+                    HttpMethod.GET,
+                    checkAddressEntity,
+                    String.class
+            );
+            Pattern pattern = Pattern.compile("<meta property=\"og:description\" content=\"(.*?)\">");
+            Matcher matcher = pattern.matcher(checkAddressResponse.toString());
+            if (matcher.find()) {
+                address = matcher.group(1);
+            } else {
+                throw new IllegalArgumentException("링크로 주소 가져오기 오류!");
+            }
+            //log.warn(address);
+        } catch (Exception e) {
+            //log.warn("링크로 주소 가져오기 오류");
+            throw new IllegalArgumentException("링크로 주소 가져오기 오류! : " + e.getMessage());
+        }
+
         //카카오맵 api 이용해 해당 장소 정보 검색
         PlaceAddressDto placeAddressDto = apiService.getKakaoMapPlaceId(name, address);
         log.warn(placeAddressDto.toString());

@@ -4,6 +4,7 @@ import com.where.constant.EmailVerify;
 import com.where.network.request.CheckEmailRequest;
 import com.where.network.request.EditNickNameRequest;
 import com.where.network.request.SignUpRequest;
+import com.where.network.request.UpdateFcmRequest;
 import com.where.network.response.CommonProfileImageResponse;
 import com.where.network.response.SignUpResponse;
 import com.where.network.response.UserResponse;
@@ -125,8 +126,8 @@ public class UserController {
     // FCM 토큰 업데이트 엔드포인트
     @PostMapping("/{userId}/fcm-token")
     public ResponseEntity<Void> updateFcmToken(@PathVariable Long userId,
-                                               @RequestBody String fcmToken) {
-        userService.updateFcmToken(userId, fcmToken);
+                                               @RequestBody UpdateFcmRequest request ) {
+        userService.updateFcmToken(userId, request.getFcmToken());
         return ResponseEntity.ok().build();
     }
 

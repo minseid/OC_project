@@ -20,6 +20,11 @@ public class PlaceController{
         return ResponseEntity.ok(placeService.addPlace(request.getMeetingId(), request.getUserId(), request.getName(), request.getAddress()));
     }
 
+    @PostMapping("/api/place/apple")
+    public ResponseEntity<AddPlaceResponse> addPlaceApple(@RequestBody AddPlaceAppleRequest request) {
+        return ResponseEntity.ok(placeService.addPlaceApple(request.getMeetingId(), request.getUserId(), request.getName(), request.getLink()));
+    }
+
     @DeleteMapping("/api/place")
     public ResponseEntity<Void> deletePlace(@RequestBody CommonIdAndUserRequest request) {
         placeService.deletePlace(request.getId(), request.getUserId());
