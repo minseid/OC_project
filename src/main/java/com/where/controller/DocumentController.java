@@ -3,6 +3,7 @@ package com.where.controller;
 import com.where.network.request.*;
 import com.where.network.response.*;
 import com.where.service.DocumentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class DocumentController {
     }
 
     @PostMapping("/api/inquiry")
-    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") AddInquiryRequest request, @RequestPart("image") List<MultipartFile> file) {
+    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") @Valid AddInquiryRequest request, @RequestPart("image") List<MultipartFile> file) {
         return ResponseEntity.ok(documentService.addInquiry(request, file));
     }
 
