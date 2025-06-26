@@ -339,6 +339,7 @@ public class PlaceService {
         userMeetingMappingRepository.findAllByMeeting(saved.getMeeting()).forEach(userMeetingMapping -> {
             if(!userMeetingMapping.getUser().getId().equals(userId)){
                 try {
+                    log.warn("pick fcm보내기 시작");
                     fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),null,null, SendPickPlaceDto.builder()
                                     .placeId(saved.getId())
                                     .placeStatus(saved.getPlaceStatus())

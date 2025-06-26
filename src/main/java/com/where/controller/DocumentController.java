@@ -5,6 +5,7 @@ import com.where.network.response.*;
 import com.where.service.DocumentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentController {
 
     private final DocumentService documentService;
@@ -23,7 +25,9 @@ public class DocumentController {
     }
 
     @PostMapping("/api/inquiry")
-    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") @Valid AddInquiryRequest request, @RequestPart("image") List<MultipartFile> file) {
+    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") @Valid AddInquiryRequest request, @RequestPart(value = "image", required = false) List<MultipartFile> file) {
+        log.warn(request.toString());
+        log.warn(file.toString());
         return ResponseEntity.ok(documentService.addInquiry(request, file));
     }
 

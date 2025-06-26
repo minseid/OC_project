@@ -29,9 +29,6 @@ public class User extends TimeBaseEntity {
     @Column(name = "profile_image") // 'profile_image' 컬럼과 매핑
     private String profileImage;
 
-    @Column(name = "fcm_key") // 'fcm_key' 컬럼과 매핑
-    private String fcmKey;
-
     private String fcmToken;
 
     //sns회원가입을 위해서 null허용

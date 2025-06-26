@@ -13,6 +13,7 @@ import com.where.repository.InquiryRepository;
 import com.where.repository.NoticeRepository;
 import com.where.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -65,9 +67,14 @@ public class DocumentService {
                 .answered(false)
                 .build());
         final Long inquiryId = saved.getId();
-        images.forEach(image -> {
-            imageList.add(awsS3Service.saveInquiryImage(image, inquiryId));
-        });
+        if(images != null && !images.isEmpty()) {
+            images.forEach(image -> {
+                log.warn(image.getOriginalFilename());
+                if(image != null && !image.isEmpty() && image.getOriginalFilename() != null && image.getOriginalFilename().length() > 0) {
+                    imageList.add(awsS3Service.saveInquiryImage(image, inquiryId));
+                }
+            });
+        }
         saved = inquiryRepository.save(Inquiry.builder()
                 .id(saved.getId())
                 .title(saved.getTitle())

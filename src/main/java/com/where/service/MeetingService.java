@@ -217,7 +217,7 @@ public class MeetingService {
                                 .status(false)
                                 .build());
                         try {
-                            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getName()+"님이 " + target.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
+                            fcmService.sendMessageToken(toId, "모임 초대!", findService.valid(userRepository.findById(fromId), EntityType.User).getNickName()+"님이 " + target.getTitle() + "모임에 초대하셨어요!", null,null, SendType.Notification);
                         } catch (IOException e) {
                             throw new IllegalArgumentException("초대전송 실패! : " + e.getMessage());
                         }
@@ -517,7 +517,7 @@ public class MeetingService {
                fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendAddMemberDto.builder()
                        .meetingId(targetMeeting.getId())
                        .userId(acceptUser.getId())
-                       .userName(acceptUser.getName())
+                       .userName(acceptUser.getNickName())
                        .userImage(acceptUser.getProfileImage())
                        .build(), MethodType.MeetingAccept, SendType.Data);
             } catch (IOException e) {
@@ -606,7 +606,7 @@ public class MeetingService {
                 fcmService.sendMessageToken(userMeetingMapping.getUser().getId(), null, null, SendAddMemberDto.builder()
                         .meetingId(targetMeeting.getId())
                         .userId(acceptUser.getId())
-                        .userName(acceptUser.getName())
+                        .userName(acceptUser.getNickName())
                         .userImage(acceptUser.getProfileImage())
                         .build(), MethodType.MeetingAccept, SendType.Data);
             } catch (IOException e) {
@@ -638,7 +638,7 @@ public class MeetingService {
                         .build());
                 //새로운 친구이므로 상대방에게 푸시알림 전송
                 try {
-                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),"친구 추가", acceptUser.getName() + "님이 " + userMeetingMapping.getUser().getName() + "님을 친구로 추가하셨어요.", null, null, SendType.Notification);
+                    fcmService.sendMessageToken(userMeetingMapping.getUser().getId(),"친구 추가", acceptUser.getNickName() + "님이 " + userMeetingMapping.getUser().getNickName() + "님을 친구로 추가하셨어요.", null, null, SendType.Notification);
                 } catch (IOException e) {
                     throw new IllegalArgumentException("푸시알림 전송실패! : " + e.getMessage());
                 }

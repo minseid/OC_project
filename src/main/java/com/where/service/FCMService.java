@@ -46,7 +46,8 @@ public class FCMService {
     private final UserRepository userRepository;
 
     public void sendMessageToken(Long userId, String title, String body, Object dataObject, MethodType methodType, SendType sendType) throws IOException {
-        String targetToken = findService.valid(userRepository.findById(userId), EntityType.User).getFcmKey();
+        String targetToken = findService.valid(userRepository.findById(userId), EntityType.User).getFcmToken();
+        log.warn(targetToken);
         if(targetToken==null || targetToken.isEmpty()) {
             return;
         }
@@ -110,9 +111,10 @@ public class FCMService {
 
         Map<String, Object> dataMap = objectMapper.convertValue(dataObject,Map.class);
         dataMap.replaceAll((key, value) -> String.valueOf(value));
-        Map<String, Object> wrappedMap = new HashMap<>();
-        wrappedMap.put("code", methodType.getCode());
-        wrappedMap.put("data", dataMap);
+        dataMap.put("code", String.valueOf(methodType.getCode()));
+//        Map<String, Object> wrappedMap = new HashMap<>();
+//        wrappedMap.put("code", methodType.getCode());
+//        wrappedMap.put("data", dataMap);
 
         FCMMessageDto fcmMessageDto= FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
@@ -121,7 +123,7 @@ public class FCMService {
                                 .title(title)
                                 .body(body)
                                 .build())
-                        .data(wrappedMap)
+                        .data(dataMap)
                         .build())
                 .validate_only(false)
                 .build();
