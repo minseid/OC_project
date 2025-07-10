@@ -51,6 +51,11 @@ public class MeetingController{
         return ResponseEntity.ok(participants);
     }
 
+    @GetMapping("/api/participant/{id}")
+    public ResponseEntity<List<GetUserInviteResponse>> getUserInvite(@PathVariable("id") Long userId) {
+        return ResponseEntity.ok(meetingService.getUserInvites(userId));
+    }
+
     @GetMapping("/api/meeting/{id}")
     public ResponseEntity<List<GetMeetingsResponse>> getMeetings(@PathVariable("id") Long userId) {
         return ResponseEntity.ok(meetingService.getMeetings(userId));

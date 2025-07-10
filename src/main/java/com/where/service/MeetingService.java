@@ -691,4 +691,26 @@ public class MeetingService {
             throw new IllegalArgumentException("초대장이 올바르지 않습니다!");
         }
     }
+
+    public List<GetUserInviteResponse> getUserInvites(Long userId) {
+        User user = findService.valid(userRepository.findById(userId),EntityType.User);
+
+        List<Participant> participants = participantRepository.findAllByToId(userId);
+        List<GetUserInviteResponse> lists = new ArrayList<>();
+        for(Participant participant : participants) {
+            if(!participant.isStatus()) {
+                Optional<Schedule> schedule = scheduleRepository.findByMeeting(participant.getMeeting());
+                lists.add(GetUserInviteResponse.builder()
+                        .inviteId(participant.getId())
+                        .meetingId(participant.getMeeting().getId())
+                        .meetingImage(participant.getMeeting().getImage())
+                        .fromNickName(findService.valid(userRepository.findById(participant.getFromId()),EntityType.User).getNickName())
+                        .meetingTitle(participant.getMeeting().getTitle())
+                        .scheduleDate(schedule.isEmpty()? null: schedule.get().getDate())
+                        .scheduleTime(schedule.isEmpty()? null: schedule.get().getTime())
+                        .build());
+            }
+        }
+        return lists;
+    }
 }

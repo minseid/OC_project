@@ -24,9 +24,10 @@ public class FCMMessageDto {
     public static class Message {
         private Notification notification;
         private Map<String, Object> data;
+        private boolean content_available;
         private String token;
         private Android android;
-        private Apns apns;
+       // private Apns apns;
 
     }
 
