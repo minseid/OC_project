@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,6 +67,7 @@ public class DocumentService {
                 .user(findService.valid(userRepository.findById(request.getUserId()),EntityType.User))
                 .answered(false)
                 .build());
+        LocalDate date = saved.getCreatedAt().toLocalDate();
         final Long inquiryId = saved.getId();
         if(images != null && !images.isEmpty()) {
             images.forEach(image -> {
@@ -75,7 +77,7 @@ public class DocumentService {
                 }
             });
         }
-        saved = inquiryRepository.save(Inquiry.builder()
+        Inquiry savedLast = inquiryRepository.save(Inquiry.builder()
                 .id(saved.getId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
@@ -85,13 +87,13 @@ public class DocumentService {
                 .answerContent(saved.getAnswerContent())
                 .build());
         return AddInquiryResponse.builder()
-                .id(saved.getId())
-                .title(saved.getTitle())
-                .content(saved.getContent())
-                .images(saved.getImages())
-                .answered(saved.isAnswered())
-                .answerContent(saved.getAnswerContent())
-                .inquiryDate(saved.getCreatedAt().toLocalDate())
+                .id(savedLast.getId())
+                .title(savedLast.getTitle())
+                .content(savedLast.getContent())
+                .images(savedLast.getImages())
+                .answered(savedLast.isAnswered())
+                .answerContent(savedLast.getAnswerContent())
+                .inquiryDate(date)
                 .build();
     }
 

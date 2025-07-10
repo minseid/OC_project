@@ -95,11 +95,17 @@ public class FCMService {
         Map<String, Object> wrappedMap = new HashMap<>();
         wrappedMap.put("code", String.valueOf(methodType.getCode()));
         wrappedMap.putAll(dataMap);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("apns-priority", "10");
+        FCMMessageDto.Aps aps = FCMMessageDto.Aps.builder().contentAvailable(1).build();
+        FCMMessageDto.Payload payload = FCMMessageDto.Payload.builder().aps(aps).build();
         FCMMessageDto fcmMessageDto = FCMMessageDto.builder()
                 .message(FCMMessageDto.Message.builder()
                         .token(targetToken)
                         .notification(null)
                         .data(wrappedMap)
+                        .android(FCMMessageDto.Android.builder().priority("high").build())
+                        .apns(FCMMessageDto.Apns.builder().headers(headers).payload(payload).build())
                         .build())
                 .validate_only(false)
                 .build();
