@@ -3,6 +3,7 @@ package com.where.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Table(name = "Meeting")
 @Entity
@@ -32,4 +33,8 @@ public class Meeting extends TimeBaseEntity {
 
     @Column(nullable = false)
     private boolean finished;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private int kakaoInvite;
 }

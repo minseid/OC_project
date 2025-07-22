@@ -711,6 +711,7 @@ public class MeetingService {
                         .build());
             }
         }
+        List<MultipartFile> image = new ArrayList<>();
         return lists;
     }
 }

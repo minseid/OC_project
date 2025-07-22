@@ -81,4 +81,7 @@ public class MeetingController{
     public ResponseEntity<GetInviteResponse> getInviteOk(@PathVariable("link") String link) {
         return ResponseEntity.ok(meetingService.getInvite(link));
     }
+
+//    @PostMapping("/kakaoshare/webhook")
+//    public ResponseEntity
 }

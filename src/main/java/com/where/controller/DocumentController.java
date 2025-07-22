@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.lang.invoke.MutableCallSite;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,10 +27,18 @@ public class DocumentController {
     }
 
     @PostMapping("/api/inquiry")
-    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") @Valid AddInquiryRequest request, @RequestPart(value = "image", required = false) List<MultipartFile> file) {
+    public ResponseEntity<AddInquiryResponse> addInquiry(@RequestPart("data") @Valid AddInquiryRequest request, @RequestPart(value = "image", required = false) List<MultipartFile> file, @RequestPart(value = "image[]", required = false)MultipartFile[] images) {
         log.warn(request.toString());
-        log.warn(file.toString());
-        return ResponseEntity.ok(documentService.addInquiry(request, file));
+        if(file != null) {
+            log.warn(file.toString());
+            return ResponseEntity.ok(documentService.addInquiry(request, file));
+        }
+        if(images != null) {
+            log.warn( "images : " + images.toString());
+            List<MultipartFile> files = new ArrayList<>(List.of(images));
+            return ResponseEntity.ok(documentService.addInquiry(request, files));
+        }
+        throw new IllegalArgumentException("문의생성중 오류발생!");
     }
 
     @GetMapping("/api/admin/inquiry/{type}")

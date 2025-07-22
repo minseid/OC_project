@@ -69,6 +69,7 @@ public class DocumentService {
                 .build());
         LocalDate date = saved.getCreatedAt().toLocalDate();
         final Long inquiryId = saved.getId();
+        log.error(images.toString());
         if(images != null && !images.isEmpty()) {
             images.forEach(image -> {
                 log.warn(image.getOriginalFilename());
@@ -134,6 +135,7 @@ public class DocumentService {
     //관리자가 1:1문의에 답변다는 메서드
     public AddInquiryAdminResponse answerInquiry(AddAnswerRequest request) {
         Inquiry target = findService.valid(inquiryRepository.findById(request.getId()),EntityType.Inquiry);
+        LocalDate date = target.getCreatedAt().toLocalDate();
         Inquiry saved = inquiryRepository.save(Inquiry.builder()
                 .id(target.getId())
                 .user(target.getUser())
@@ -143,6 +145,8 @@ public class DocumentService {
                 .answered(true)
                 .answerContent(request.getAnswerContent())
                 .build());
+        saved = findService.valid(inquiryRepository.findById(request.getId()),EntityType.Inquiry);
+        LocalDate updatedAt = LocalDate.now();
         return AddInquiryAdminResponse.builder()
                 .id(saved.getId())
                 .userId(saved.getUser().getId())
@@ -152,8 +156,8 @@ public class DocumentService {
                 .images(saved.getImages())
                 .answered(saved.isAnswered())
                 .answerContent(saved.getAnswerContent())
-                .inquiryDate(saved.getCreatedAt().toLocalDate())
-                .answerDate(saved.getUpdatedAt().toLocalDate())
+                .inquiryDate(date)
+                .answerDate(updatedAt)
                 .build();
     }
 
