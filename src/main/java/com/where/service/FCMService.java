@@ -105,7 +105,6 @@ public class FCMService {
                         .notification(null)
                         .data(wrappedMap)
                         .android(FCMMessageDto.Android.builder().priority("high").build())
-                        .content_available(true)
                         //.apns(FCMMessageDto.Apns.builder().headers(headers).payload(payload).build())
                         .build())
                 .validate_only(false)
